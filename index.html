@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fysikkforklarer</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#B8860B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fysikkforklarer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:        #EEF2F5;
+  --grid-line:    #D4E0E8;
+  --panel:        #FFFFFF;
+  --ink:          #1C2733;
+  --ink-soft:     #57677A;
+  --rule:         #D9B4B4;
+  --accent:       #B8860B;
+  --accent-ink:   #2A2109;
+  --avvik:        #B3261E;
+  --ok:           #2E6B3E;
+  --font-serif:  "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-sans:   "IBM Plex Sans", Arial, Helvetica, sans-serif;
+  --font-mono:   "IBM Plex Mono", "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14181D; --grid-line:#232A31; --panel:#1B2128;
+    --ink:#E8ECEF; --ink-soft:#97A3AF; --rule:#5B4040; --accent:#D9A62E; --accent-ink:#14100A; --ok:#6FBE85;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14181D; --grid-line:#232A31; --panel:#1B2128;
+  --ink:#E8ECEF; --ink-soft:#97A3AF; --rule:#5B4040; --accent:#D9A62E; --accent-ink:#14100A; --ok:#6FBE85;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  font:400 16px/1.55 var(--font-sans); color:var(--ink);
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:26px 26px;
+}
+h1,h2,h3{ font-family:var(--font-serif); font-weight:600; margin:0; color:var(--ink); }
+.page{
+  position:relative; max-width:760px; margin:32px auto 64px;
+  background:var(--panel); border:1px solid var(--grid-line);
+  padding:52px 40px 48px 76px;
+}
+.page::before{ content:""; position:absolute; left:48px; top:0; bottom:0; width:2px; background:var(--rule); opacity:0.7; }
+@media (max-width:640px){ .page{ padding:36px 20px 36px 42px; margin:16px 10px 48px; } .page::before{ left:24px; } }
+
+header p.sub{ font-size:16px; color:var(--ink-soft); max-width:58ch; margin-top:14px; line-height:1.6; }
+header h1{ font-size:clamp(30px,6vw,42px); letter-spacing:-0.01em; }
+
+.boks{ margin:0 0 28px; padding:20px 22px; background:var(--paper); border:1px solid var(--grid-line); }
+.boks h3{ font-size:16px; margin-bottom:8px; }
+.boks .under{ font-size:13.5px; color:var(--ink-soft); margin-bottom:14px; line-height:1.6; }
+.boks ol{ margin:0; padding-left:20px; font-size:14.5px; color:var(--ink-soft); }
+.boks li{ margin-bottom:5px; }
+
+.felt-rad{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+@media (max-width:520px){ .felt-rad{ grid-template-columns:1fr; } }
+.felt label{ display:block; font:500 13px var(--font-sans); color:var(--ink-soft); margin-bottom:6px; }
+.felt input, .felt select{
+  width:100%; font:400 15px var(--font-mono); color:var(--ink); background:var(--panel);
+  border:1px solid var(--grid-line); padding:10px 12px;
+}
+.felt select{ font-family:var(--font-sans); }
+.felt input:focus, .felt select:focus{ outline:none; border-color:var(--accent); }
+
+.knapp-rad{ display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+.btn{
+  display:inline-block; font:600 15px var(--font-sans); color:var(--ink); background:transparent;
+  border:1px solid var(--ink); padding:12px 26px; cursor:pointer;
+}
+.btn:hover{ background:var(--ink); color:var(--panel); }
+.btn:disabled{ opacity:0.5; cursor:default; }
+.btn.svak{ border-color:var(--ink-soft); color:var(--ink-soft); }
+
+.status-linje{ margin-top:12px; font-size:13.5px; color:var(--ink-soft); }
+.status-linje.err{ color:var(--avvik); }
+.status-linje.ok{ color:var(--ok); }
+
+textarea{
+  width:100%; font:400 16px/1.55 var(--font-sans); color:var(--ink); background:var(--paper);
+  border:1px solid var(--grid-line); padding:14px; min-height:110px; resize:vertical; margin-bottom:14px;
+}
+textarea:focus{ outline:none; border-color:var(--accent); }
+
+.foto-rad{ display:flex; align-items:center; gap:14px; margin:0 0 14px; flex-wrap:wrap; }
+.foto-forhandsvisning{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-soft); }
+.foto-forhandsvisning img{ height:44px; width:44px; object-fit:cover; border:1px solid var(--grid-line); }
+.foto-forhandsvisning button{ border:none; background:none; color:var(--avvik); text-decoration:underline; cursor:pointer; font:400 13px var(--font-sans); padding:0; }
+
+.loadbar{ height:3px; background:var(--grid-line); margin:8px 0; overflow:hidden; display:none; }
+.loadbar.active{ display:block; }
+.loadbar span{ display:block; width:28%; height:100%; background:var(--accent); animation:slide 1.1s linear infinite; }
+@keyframes slide{ 0%{ transform:translateX(-130%); } 100%{ transform:translateX(460%); } }
+
+.resultat{ margin-top:24px; border-top:1px solid var(--grid-line); padding-top:22px; }
+.resultat h4{ font-size:17px; margin:20px 0 8px; font-family:var(--font-serif); }
+.resultat h4:first-child{ margin-top:0; }
+.resultat p{ margin:0 0 8px; }
+
+.kjente-tabell{ border-collapse:collapse; width:100%; margin-bottom:8px; font-size:15px; }
+.kjente-tabell th{ text-align:left; padding:6px 10px 6px 0; font:600 13px var(--font-sans); color:var(--ink-soft); border-bottom:1px solid var(--ink-soft); }
+.kjente-tabell td{ padding:6px 10px 6px 0; border-bottom:1px solid var(--grid-line); font-family:var(--font-mono); }
+
+.formel-liste{ margin:0 0 8px; padding-left:20px; }
+.formel-liste li{ margin-bottom:4px; font-family:var(--font-mono); font-size:15px; }
+
+.steg{ margin:0 0 20px; padding-left:18px; border-left:2px solid var(--grid-line); }
+.steg .steg-tittel{ font-weight:600; margin-bottom:4px; }
+.steg .uttrykk{ font-family:var(--font-mono); background:var(--paper); border:1px solid var(--grid-line); padding:8px 12px; display:inline-block; margin-top:8px; font-size:15px; }
+
+.svar-boks{ position:relative; background:var(--panel); border:1px solid var(--grid-line); padding:20px 22px; margin-top:8px; }
+.svar-boks::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--accent); }
+.svar-boks .label{ font:600 13px var(--font-sans); color:var(--ink-soft); margin-bottom:4px; }
+.svar-boks .verdi{ font:600 24px var(--font-serif); }
+
+.sjekk{ font-size:14px; color:var(--ink-soft); margin-top:16px; }
+.sjekk strong{ color:var(--ink); font-family:var(--font-sans); }
+
+.tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 24px; }
+.tab{ font:500 14px var(--font-sans); padding:7px 14px; border:1px solid var(--ink-soft); border-top:3px solid var(--ink-soft); background:transparent; color:var(--ink); cursor:pointer; }
+.tab.active{ border-color:var(--accent); border-top-color:var(--accent); background:var(--accent); color:var(--accent-ink); font-weight:600; }
+
+.mal-kort{ border:1px solid var(--grid-line); margin-bottom:12px; }
+.mal-hode{ width:100%; text-align:left; background:var(--panel); border:none; cursor:pointer; padding:16px 18px; display:flex; justify-content:space-between; align-items:baseline; gap:16px; font-family:var(--font-sans); color:var(--ink); }
+.mal-hode .navn{ font-weight:600; font-size:15.5px; }
+.mal-hode .formel{ font-family:var(--font-mono); color:var(--ink-soft); font-size:14px; white-space:nowrap; }
+.mal-kort.apen .mal-hode{ border-bottom:1px solid var(--grid-line); }
+.mal-panel{ padding:20px 18px 24px; display:none; }
+.mal-kort.apen .mal-panel{ display:block; }
+.mal-panel .beskrivelse{ color:var(--ink-soft); font-size:14.5px; margin-bottom:18px; }
+.mal-panel .formel-stor{ font-family:var(--font-mono); font-size:19px; margin-bottom:18px; }
+.mal-panel .feil{ margin-top:14px; font-size:14px; color:var(--avvik); }
+.mal-panel .resultat .steg-linje{ font-family:var(--font-mono); font-size:15px; margin-bottom:8px; }
+.mal-panel .resultat .steg-linje .merke{ font-family:var(--font-sans); font-size:12.5px; color:var(--ink-soft); display:block; margin-bottom:2px; }
+
+.side{ margin-top:36px; border-top:1px solid var(--grid-line); padding-top:24px; }
+.side p.disclaimer{ font-size:13px; color:var(--ink-soft); }
+footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<main class="page">
+  <header>
+    <h1>Fysikkforklarer</h1>
+    <p class="sub">Beskriv en fysikkoppgave med tekst, eller ta bilde av den, så leser KI-en den og forklarer fremgangsmåten steg for steg - med din egen, gratis API-nøkkel. Vil du heller ikke bruke KI: velg en formel manuelt lenger ned, som fungerer helt uten nøkkel.</p>
+  </header>
+
+  <div class="boks">
+    <h3>KI-tilkobling (valgfritt - din egen nøkkel)</h3>
+    <p class="under">Ingen konto hos oss, ingen innlogging her på siden. Du bruker din egen gratis nøkkel fra Google Gemini (anbefalt - krever ikke betalingskort) eller Anthropic Claude (krever betalingskort). Nøkkelen lagres kun i denne nettleseren og sendes direkte til leverandøren når du løser en oppgave - aldri innom noen mellomtjener.</p>
+    <div class="felt-rad">
+      <div class="felt">
+        <label for="kiLeverandor">Leverandør</label>
+        <select id="kiLeverandor">
+          <option value="gemini">Google Gemini (gratis, ingen kort)</option>
+          <option value="claude">Anthropic Claude (krever kort)</option>
+        </select>
+      </div>
+      <div class="felt">
+        <label for="kiNokkelInput">API-nøkkel</label>
+        <input type="password" id="kiNokkelInput" placeholder="Lim inn nøkkelen din">
+      </div>
+    </div>
+    <div class="knapp-rad">
+      <button type="button" class="btn" id="kiLagreBtn">Lagre nøkkel</button>
+      <button type="button" class="btn svak" id="kiFjernBtn">Fjern nøkkel</button>
+    </div>
+    <div class="status-linje" id="kiNokkelStatus"></div>
+    <p class="under" id="kiHjelpLenke" style="margin:12px 0 0;"></p>
+  </div>
+
+  <div class="boks">
+    <h3>Løs en oppgave med KI</h3>
+    <textarea id="kiProblemInput" placeholder="F.eks.: En bil bremser fra 20 m/s til stopp i løpet av 5 sekunder. Hvor langt kjører den før den stopper?"></textarea>
+    <div class="foto-rad">
+      <button type="button" class="btn svak" id="kiFotoBtn">Ta bilde av oppgaven</button>
+      <input type="file" id="kiFotoInput" accept="image/*" capture="environment" hidden>
+      <div class="foto-forhandsvisning" id="kiFotoForhandsvisning" hidden>
+        <img id="kiFotoThumb" alt="Bilde av oppgaven">
+        <span id="kiFotoNavn"></span>
+        <button type="button" id="kiFotoFjern">Fjern bilde</button>
+      </div>
+    </div>
+    <div class="knapp-rad">
+      <button type="button" class="btn" id="kiSolveBtn">Løs oppgaven</button>
+    </div>
+    <div class="loadbar" id="kiLoadbar"><span></span></div>
+    <div class="status-linje" id="kiStatus"></div>
+    <div class="resultat" id="kiResultat" style="display:none;"></div>
+  </div>
+
+  <div class="boks">
+    <h3>Generell fremgangsmåte (uansett metode)</h3>
+    <ol>
+      <li>Identifiser hvilken lov/sammenheng som gjelder for situasjonen.</li>
+      <li>Skriv opp hva du kjenner, og hva du skal finne.</li>
+      <li>Isoler den ukjente størrelsen algebraisk i formelen.</li>
+      <li>Sett inn de kjente verdiene med riktige enheter.</li>
+      <li>Regn ut, og sjekk at svaret har fornuftig størrelsesorden og riktig enhet.</li>
+    </ol>
+  </div>
+
+  <h2 style="font-size:22px; margin-bottom:16px;">Eller velg en formel manuelt (ingen nøkkel nødvendig)</h2>
+  <div class="tabs" id="tabs"></div>
+  <div id="malListe"></div>
+
+  <div class="side">
+    <p class="disclaimer">Dette er en prototype til testing. KI-svar kan inneholde feil - kontroller mellomregning og enheter selv. Formlene i den manuelle listen er standard lærebokformler og regnes alltid ut lokalt, uavhengig av KI-tilkoblingen.</p>
+  </div>
+</main>
+
+<footer>Fysikkforklarer - utviklet av Mads Fjærem. Prototype/test. KI-nøkkelen din lagres kun lokalt i denne nettleseren.</footer>
+
+<script>
+/* ---------- Fellesfunksjoner ---------- */
+function rad(g){ return g*Math.PI/180; }
+function deg(r){ return r*180/Math.PI; }
+function toSuperscript(n){
+  const kart = {"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"};
+  return String(n).split("").map(function(ch){ return kart[ch] || ch; }).join("");
+}
+function formatTall(x){
+  if (typeof x !== "number" || !isFinite(x)) return "—";
+  const abs = Math.abs(x);
+  if (abs !== 0 && (abs < 1e-3 || abs >= 1e6)){
+    const eksp = x.toExponential(3);
+    const deler = eksp.split("e");
+    let grunntall = deler[0].replace(/0+$/,"").replace(/\.$/,"");
+    const eksponent = parseInt(deler[1], 10);
+    return grunntall + "×10" + toSuperscript(eksponent);
+  }
+  const rundet = Number(x.toPrecision(4));
+  return String(rundet);
+}
+function medTallVisning(uttrykk, variabler, kjente, losForSymbol){
+  const eqIdx = uttrykk.indexOf("=");
+  const venstre = uttrykk.slice(0, eqIdx + 1);
+  let hoyre = uttrykk.slice(eqIdx + 1);
+  const substVars = variabler.filter(function(v){ return v.symbol !== losForSymbol; })
+    .slice().sort(function(a,b){ return b.label.length - a.label.length; });
+  substVars.forEach(function(v){
+    const verdi = kjente[v.symbol];
+    const tekst = formatTall(verdi) + (v.enhet ? (" " + v.enhet) : "");
+    hoyre = hoyre.split(v.label).join(tekst);
+  });
+  return venstre + hoyre;
+}
+
+/* ---------- KI-nøkkel (lagres i localStorage) ---------- */
+const LS_LEVERANDOR = "fysikkforklarer_leverandor";
+const LS_NOKKEL = "fysikkforklarer_nokkel";
+
+const kiLeverandorSelect = document.getElementById("kiLeverandor");
+const kiNokkelInput = document.getElementById("kiNokkelInput");
+const kiLagreBtn = document.getElementById("kiLagreBtn");
+const kiFjernBtn = document.getElementById("kiFjernBtn");
+const kiNokkelStatus = document.getElementById("kiNokkelStatus");
+const kiHjelpLenke = document.getElementById("kiHjelpLenke");
+
+function lesLagretNokkel(){
+  try{
+    return {
+      leverandor: localStorage.getItem(LS_LEVERANDOR) || "gemini",
+      nokkel: localStorage.getItem(LS_NOKKEL) || ""
+    };
+  }catch(e){ return { leverandor:"gemini", nokkel:"" }; }
+}
+function lagreNokkelLokalt(leverandor, nokkel){
+  try{
+    localStorage.setItem(LS_LEVERANDOR, leverandor);
+    localStorage.setItem(LS_NOKKEL, nokkel);
+    return true;
+  }catch(e){ return false; }
+}
+function fjernNokkelLokalt(){
+  try{
+    localStorage.removeItem(LS_LEVERANDOR);
+    localStorage.removeItem(LS_NOKKEL);
+    return true;
+  }catch(e){ return false; }
+}
+function oppdaterHjelpLenke(){
+  if (kiLeverandorSelect.value === "gemini"){
+    kiHjelpLenke.textContent = "Få en gratis nøkkel: aistudio.google.com/apikey (kun Google-konto, ikke betalingskort).";
+  } else {
+    kiHjelpLenke.textContent = "Få en nøkkel: console.anthropic.com/settings/keys (krever betalingsinfo registrert).";
+  }
+}
+function oppdaterNokkelStatus(){
+  const lagret = lesLagretNokkel();
+  if (lagret.nokkel){
+    const maske = lagret.nokkel.length > 6
+      ? ("••••" + lagret.nokkel.slice(-4))
+      : "••••";
+    const navn = lagret.leverandor === "claude" ? "Anthropic Claude" : "Google Gemini";
+    kiNokkelStatus.textContent = "Nøkkel lagret for " + navn + " (" + maske + ").";
+    kiNokkelStatus.className = "status-linje ok";
+    kiLeverandorSelect.value = lagret.leverandor;
+  } else {
+    kiNokkelStatus.textContent = "Ingen nøkkel lagret ennå.";
+    kiNokkelStatus.className = "status-linje";
+  }
+}
+kiLeverandorSelect.addEventListener("change", oppdaterHjelpLenke);
+kiLagreBtn.addEventListener("click", function(){
+  const leverandor = kiLeverandorSelect.value;
+  const nokkel = kiNokkelInput.value.trim();
+  if (!nokkel){
+    kiNokkelStatus.textContent = "Lim inn en nøkkel før du lagrer.";
+    kiNokkelStatus.className = "status-linje err";
+    return;
+  }
+  const ok = lagreNokkelLokalt(leverandor, nokkel);
+  kiNokkelInput.value = "";
+  if (ok){ oppdaterNokkelStatus(); }
+  else {
+    kiNokkelStatus.textContent = "Kunne ikke lagre nøkkelen i denne nettleseren.";
+    kiNokkelStatus.className = "status-linje err";
+  }
+});
+kiFjernBtn.addEventListener("click", function(){
+  fjernNokkelLokalt();
+  oppdaterNokkelStatus();
+});
+oppdaterHjelpLenke();
+oppdaterNokkelStatus();
+
+/* ---------- KI-kall ---------- */
+function renseJson(tekst){
+  let t = (tekst || "").trim();
+  t = t.replace(/^```json/i, "").replace(/^```/, "").replace(/```$/, "").trim();
+  return t;
+}
+
+async function kallGemini(prompt, nokkel, bilde){
+  const modell = "gemini-3.1-flash-lite";
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + modell + ":generateContent";
+  const parts = [{ text: prompt }];
+  if (bilde){ parts.push({ inlineData: { mimeType: bilde.mimeType, data: bilde.data } }); }
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type":"application/json", "x-goog-api-key": nokkel },
+    body: JSON.stringify({
+      contents: [{ role:"user", parts: parts }],
+      generationConfig: { responseMimeType: "application/json" }
+    })
+  });
+  if (!resp.ok){
+    const feiltekst = await resp.text().catch(function(){ return ""; });
+    throw new Error("Gemini svarte med feil (" + resp.status + "). " + feiltekst.slice(0,200));
+  }
+  const data = await resp.json();
+  const tekst = data && data.candidates && data.candidates[0] && data.candidates[0].content
+    && data.candidates[0].content.parts && data.candidates[0].content.parts[0]
+    && data.candidates[0].content.parts[0].text;
+  if (!tekst) throw new Error("Fikk ikke noe brukbart svar fra Gemini.");
+  return JSON.parse(renseJson(tekst));
+}
+
+async function kallClaude(prompt, nokkel, bilde){
+  const modell = "claude-haiku-4-5-20251001";
+  const url = "https://api.anthropic.com/v1/messages";
+  const contentBlokker = [];
+  if (bilde){ contentBlokker.push({ type:"image", source:{ type:"base64", media_type: bilde.mimeType, data: bilde.data } }); }
+  contentBlokker.push({ type:"text", text: prompt });
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type":"application/json",
+      "x-api-key": nokkel,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body: JSON.stringify({
+      model: modell,
+      max_tokens: 1500,
+      messages: [{ role:"user", content: contentBlokker }]
+    })
+  });
+  if (!resp.ok){
+    const feiltekst = await resp.text().catch(function(){ return ""; });
+    throw new Error("Claude svarte med feil (" + resp.status + "). " + feiltekst.slice(0,200));
+  }
+  const data = await resp.json();
+  const blokk = (data.content || []).find(function(b){ return b.type === "text"; });
+  if (!blokk) throw new Error("Fikk ikke noe brukbart svar fra Claude.");
+  return JSON.parse(renseJson(blokk.text));
+}
+
+function byggLosPrompt(tekst, harBilde){
+  const linjer = [
+    "Du er en erfaren fysikklærer på videregående- og universitetsnivå. Du skal tolke og løse en fysikkoppgave steg for steg, på norsk bokmål.",
+    ""
+  ];
+  if (harBilde){
+    linjer.push("Et bilde av oppgaveteksten er vedlagt. Les oppgaven fra bildet.");
+    if (tekst){
+      linjer.push("Brukeren har i tillegg skrevet dette som ekstra kontekst eller presisering:", "\"\"\"", tekst, "\"\"\"");
+    }
+  } else {
+    linjer.push(
+      "Oppgaven (skrevet av en bruker, kan inneholde skrivefeil eller være ufullstendig):",
+      "\"\"\"", tekst, "\"\"\""
+    );
+  }
+  linjer.push(
+    "",
+    "Svar KUN med ett gyldig JSON-objekt, uten forklaring utenfor JSON og uten kodeblokk-markører, med nøyaktig denne strukturen:",
+    "{",
+    "  \"gjenkjent_som_fysikk\": boolean,",
+    "  \"melding_hvis_ikke_fysikk\": string,",
+    "  \"tolkning\": string,",
+    "  \"kjente_storrelser\": [{\"storrelse\": string, \"symbol\": string, \"verdi\": string}],",
+    "  \"sok_etter\": string,",
+    "  \"lover_og_formler\": [string],",
+    "  \"steg\": [{\"tittel\": string, \"tekst\": string, \"uttrykk\": string}],",
+    "  \"svar\": string,",
+    "  \"enhetskontroll\": string,",
+    "  \"rimelighetssjekk\": string",
+    "}",
+    "",
+    "Regler:",
+    "- Hvis dette ikke er en fysikkoppgave, eller et vedlagt bilde er uleselig, sett \"gjenkjent_som_fysikk\" til false og forklar kort i \"melding_hvis_ikke_fysikk\" på norsk. La de andre feltene være tomme strenger eller tomme lister.",
+    "- Bruk SI-enheter der ikke annet er oppgitt eller naturlig, og vis enhet sammen med alle tallverdier.",
+    "- \"uttrykk\" i hvert steg skal vise selve formelen eller regnestykket. Bruk tom streng hvis steget er rent forklarende.",
+    "- Vis relevant mellomregning, men vær ikke unødvendig langdryg.",
+    "- \"svar\" skal være selve sluttsvaret, kort og tydelig, med riktig enhet.",
+    "- Returner utelukkende gyldig JSON - ingen kommentarer, ingen avsluttende komma, ingen tekst før eller etter."
+  );
+  return linjer.join("\n");
+}
+
+const kiProblemInput = document.getElementById("kiProblemInput");
+const kiSolveBtn = document.getElementById("kiSolveBtn");
+const kiLoadbar = document.getElementById("kiLoadbar");
+const kiStatusEl = document.getElementById("kiStatus");
+const kiResultatEl = document.getElementById("kiResultat");
+const kiFotoBtn = document.getElementById("kiFotoBtn");
+const kiFotoInput = document.getElementById("kiFotoInput");
+const kiFotoForhandsvisning = document.getElementById("kiFotoForhandsvisning");
+const kiFotoThumb = document.getElementById("kiFotoThumb");
+const kiFotoNavn = document.getElementById("kiFotoNavn");
+const kiFotoFjern = document.getElementById("kiFotoFjern");
+
+let valgtBilde = null; // { data: base64 (uten prefiks), mimeType }
+
+kiFotoBtn.addEventListener("click", function(){ kiFotoInput.click(); });
+kiFotoInput.addEventListener("change", function(){
+  const fil = kiFotoInput.files && kiFotoInput.files[0];
+  if (!fil) return;
+  const leser = new FileReader();
+  leser.onload = function(){
+    const resultat = leser.result;
+    const komma = resultat.indexOf(",");
+    valgtBilde = { data: resultat.slice(komma + 1), mimeType: fil.type || "image/jpeg" };
+    kiFotoNavn.textContent = fil.name || "bilde";
+    kiFotoThumb.src = resultat;
+    kiFotoForhandsvisning.hidden = false;
+  };
+  leser.readAsDataURL(fil);
+});
+kiFotoFjern.addEventListener("click", function(){
+  valgtBilde = null;
+  kiFotoInput.value = "";
+  kiFotoForhandsvisning.hidden = true;
+});
+
+function settKiStatus(tekst, type){
+  kiStatusEl.textContent = tekst || "";
+  kiStatusEl.className = "status-linje" + (type ? (" " + type) : "");
+}
+
+function tegnKiResultat(data){
+  kiResultatEl.innerHTML = "";
+  kiResultatEl.style.display = "block";
+
+  if (data.gjenkjent_som_fysikk === false){
+    const p = document.createElement("p");
+    p.textContent = (typeof data.melding_hvis_ikke_fysikk === "string" && data.melding_hvis_ikke_fysikk)
+      || "Dette ser ikke ut som en fysikkoppgave, eller bildet var uleselig. Prøv å beskrive oppgaven på nytt, eller ta et tydeligere bilde.";
+    kiResultatEl.appendChild(p);
+    return;
+  }
+
+  function overskrift(tekst){ const h = document.createElement("h4"); h.textContent = tekst; kiResultatEl.appendChild(h); }
+  function avsnitt(tekst){ const p = document.createElement("p"); p.textContent = tekst; kiResultatEl.appendChild(p); }
+
+  if (data.tolkning){ overskrift("Tolkning av oppgaven"); avsnitt(data.tolkning); }
+
+  if (Array.isArray(data.kjente_storrelser) && data.kjente_storrelser.length){
+    overskrift("Kjente størrelser");
+    const table = document.createElement("table");
+    table.className = "kjente-tabell";
+    const thead = document.createElement("tr");
+    ["Størrelse","Symbol","Verdi"].forEach(function(t){ const th = document.createElement("th"); th.textContent = t; thead.appendChild(th); });
+    table.appendChild(thead);
+    data.kjente_storrelser.forEach(function(rad){
+      const tr = document.createElement("tr");
+      [rad.storrelse, rad.symbol, rad.verdi].forEach(function(v){
+        const td = document.createElement("td"); td.textContent = (typeof v === "string") ? v : ""; tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    });
+    kiResultatEl.appendChild(table);
+  }
+
+  if (data.sok_etter){ overskrift("Søker etter"); avsnitt(data.sok_etter); }
+
+  if (Array.isArray(data.lover_og_formler) && data.lover_og_formler.length){
+    overskrift("Relevante lover og formler");
+    const ul = document.createElement("ul");
+    ul.className = "formel-liste";
+    data.lover_og_formler.forEach(function(f){ const li = document.createElement("li"); li.textContent = f; ul.appendChild(li); });
+    kiResultatEl.appendChild(ul);
+  }
+
+  if (Array.isArray(data.steg) && data.steg.length){
+    overskrift("Løsning steg for steg");
+    data.steg.forEach(function(s, i){
+      const div = document.createElement("div");
+      div.className = "steg";
+      const tittel = document.createElement("div");
+      tittel.className = "steg-tittel";
+      tittel.textContent = (i+1) + ". " + ((typeof s.tittel === "string") ? s.tittel : "");
+      div.appendChild(tittel);
+      if (s.tekst){ const tekst = document.createElement("div"); tekst.textContent = s.tekst; div.appendChild(tekst); }
+      if (s.uttrykk){ const uttrykk = document.createElement("div"); uttrykk.className = "uttrykk"; uttrykk.textContent = s.uttrykk; div.appendChild(uttrykk); }
+      kiResultatEl.appendChild(div);
+    });
+  }
+
+  if (data.svar){
+    const boks = document.createElement("div");
+    boks.className = "svar-boks";
+    const label = document.createElement("div"); label.className = "label"; label.textContent = "Svar";
+    const verdi = document.createElement("div"); verdi.className = "verdi"; verdi.textContent = data.svar;
+    boks.appendChild(label); boks.appendChild(verdi);
+    kiResultatEl.appendChild(boks);
+  }
+
+  if (data.enhetskontroll || data.rimelighetssjekk){
+    const sjekk = document.createElement("div");
+    sjekk.className = "sjekk";
+    if (data.enhetskontroll){
+      const p1 = document.createElement("p");
+      const s1 = document.createElement("strong"); s1.textContent = "Enhetskontroll: ";
+      p1.appendChild(s1); p1.appendChild(document.createTextNode(data.enhetskontroll));
+      sjekk.appendChild(p1);
+    }
+    if (data.rimelighetssjekk){
+      const p2 = document.createElement("p");
+      const s2 = document.createElement("strong"); s2.textContent = "Rimelighet: ";
+      p2.appendChild(s2); p2.appendChild(document.createTextNode(data.rimelighetssjekk));
+      sjekk.appendChild(p2);
+    }
+    kiResultatEl.appendChild(sjekk);
+  }
+}
+
+kiSolveBtn.addEventListener("click", async function(){
+  const tekst = kiProblemInput.value.trim();
+  const lagret = lesLagretNokkel();
+
+  if (!tekst && !valgtBilde){ settKiStatus("Skriv inn en oppgave, eller legg ved et bilde av den.", "err"); return; }
+  if (!lagret.nokkel){ settKiStatus("Legg inn og lagre en API-nøkkel over først.", "err"); return; }
+
+  kiSolveBtn.disabled = true;
+  kiLoadbar.classList.add("active");
+  settKiStatus("Løser oppgaven ...", null);
+  kiResultatEl.style.display = "none";
+  kiResultatEl.innerHTML = "";
+
+  try{
+    const prompt = byggLosPrompt(tekst, !!valgtBilde);
+    const data = lagret.leverandor === "claude"
+      ? await kallClaude(prompt, lagret.nokkel, valgtBilde)
+      : await kallGemini(prompt, lagret.nokkel, valgtBilde);
+    settKiStatus("", null);
+    tegnKiResultat(data);
+  }catch(e){
+    settKiStatus("Klarte ikke å løse oppgaven: " + (e && e.message ? e.message : "ukjent feil") + " Sjekk at nøkkelen er riktig og har ledig kvote.", "err");
+  }finally{
+    kiSolveBtn.disabled = false;
+    kiLoadbar.classList.remove("active");
+  }
+});
+
+/* ---------- Manuell formelliste (ingen nøkkel nødvendig) ---------- */
+const MALER = [
+  {
+    id:"m1", kategori:"mekanikk", navn:"Rettlinjet bevegelse - uten strekning",
+    formelVisning:"v = v₀ + a·t",
+    beskrivelse:"Et legeme beveger seg i rett linje med konstant akselerasjon. Brukes når du ikke trenger å regne med tilbakelagt strekning.",
+    variabler:[
+      {symbol:"v0", label:"v₀", navn:"Starthastighet", enhet:"m/s"},
+      {symbol:"a", label:"a", navn:"Akselerasjon", enhet:"m/s²"},
+      {symbol:"t", label:"t", navn:"Tid", enhet:"s"},
+      {symbol:"v", label:"v", navn:"Sluttfart", enhet:"m/s"}
+    ],
+    losForValg:["v","v0","a","t"],
+    beregn:function(losFor, k){
+      if (losFor === "v") return { verdi:k.v0 + k.a*k.t, uttrykk:"v = v₀ + a·t" };
+      if (losFor === "v0") return { verdi:k.v - k.a*k.t, uttrykk:"v₀ = v - a·t" };
+      if (losFor === "a"){ if (k.t===0) throw "Tiden kan ikke være 0 når du løser for akselerasjon."; return { verdi:(k.v-k.v0)/k.t, uttrykk:"a = (v - v₀) / t" }; }
+      if (losFor === "t"){ if (k.a===0) throw "Akselerasjonen kan ikke være 0 når du løser for tid med denne formelen."; return { verdi:(k.v-k.v0)/k.a, uttrykk:"t = (v - v₀) / a" }; }
+    }
+  },
+  {
+    id:"m2", kategori:"mekanikk", navn:"Rettlinjet bevegelse - strekning",
+    formelVisning:"s = v₀·t + ½·a·t²",
+    beskrivelse:"Gir strekningen (eller tiden) ved konstant akselerasjon, uten å bruke sluttfart direkte.",
+    variabler:[
+      {symbol:"v0", label:"v₀", navn:"Starthastighet", enhet:"m/s"},
+      {symbol:"a", label:"a", navn:"Akselerasjon", enhet:"m/s²"},
+      {symbol:"t", label:"t", navn:"Tid", enhet:"s"},
+      {symbol:"s", label:"s", navn:"Strekning", enhet:"m"}
+    ],
+    losForValg:["s","t","v0","a"],
+    beregn:function(losFor, k){
+      if (losFor === "s") return { verdi:k.v0*k.t + 0.5*k.a*k.t*k.t, uttrykk:"s = v₀·t + ½·a·t²" };
+      if (losFor === "t"){
+        if (k.a === 0){
+          if (k.v0 === 0) throw "Kan ikke finne tid uten akselerasjon eller starthastighet.";
+          return { verdi:k.s/k.v0, uttrykk:"t = s / v₀  (siden a = 0)" };
+        }
+        const disk = k.v0*k.v0 + 2*k.a*k.s;
+        if (disk < 0) throw "Ingen reell løsning med disse verdiene (negativ diskriminant).";
+        return { verdi:(-k.v0 + Math.sqrt(disk))/k.a, uttrykk:"t = (−v₀ + √(v₀² + 2·a·s)) / a" };
+      }
+      if (losFor === "v0"){ if (k.t===0) throw "Tiden kan ikke være 0."; return { verdi:(k.s - 0.5*k.a*k.t*k.t)/k.t, uttrykk:"v₀ = (s − ½·a·t²) / t" }; }
+      if (losFor === "a"){ if (k.t===0) throw "Tiden kan ikke være 0."; return { verdi:2*(k.s - k.v0*k.t)/(k.t*k.t), uttrykk:"a = 2·(s − v₀·t) / t²" }; }
+    }
+  },
+  {
+    id:"m3", kategori:"mekanikk", navn:"Newtons 2. lov",
+    formelVisning:"F = m·a",
+    beskrivelse:"Sammenhengen mellom kraft, masse og akselerasjon for et legeme.",
+    variabler:[
+      {symbol:"F", label:"F", navn:"Kraft", enhet:"N"},
+      {symbol:"m", label:"m", navn:"Masse", enhet:"kg"},
+      {symbol:"a", label:"a", navn:"Akselerasjon", enhet:"m/s²"}
+    ],
+    losForValg:["F","m","a"],
+    beregn:function(losFor, k){
+      if (losFor === "F") return { verdi:k.m*k.a, uttrykk:"F = m·a" };
+      if (losFor === "m"){ if (k.a===0) throw "Akselerasjonen kan ikke være 0."; return { verdi:k.F/k.a, uttrykk:"m = F / a" }; }
+      if (losFor === "a"){ if (k.m===0) throw "Massen kan ikke være 0."; return { verdi:k.F/k.m, uttrykk:"a = F / m" }; }
+    }
+  },
+  {
+    id:"m4", kategori:"mekanikk", navn:"Kinetisk energi",
+    formelVisning:"Ek = ½·m·v²",
+    beskrivelse:"Bevegelsesenergien til et legeme med masse m og fart v.",
+    variabler:[
+      {symbol:"Ek", label:"Ek", navn:"Kinetisk energi", enhet:"J"},
+      {symbol:"m", label:"m", navn:"Masse", enhet:"kg"},
+      {symbol:"v", label:"v", navn:"Fart", enhet:"m/s"}
+    ],
+    losForValg:["Ek","m","v"],
+    beregn:function(losFor, k){
+      if (losFor === "Ek") return { verdi:0.5*k.m*k.v*k.v, uttrykk:"Ek = ½·m·v²" };
+      if (losFor === "m"){ if (k.v===0) throw "Farten kan ikke være 0."; return { verdi:2*k.Ek/(k.v*k.v), uttrykk:"m = 2·Ek / v²" }; }
+      if (losFor === "v"){ if (k.m<=0) throw "Massen må være positiv."; if (k.Ek<0) throw "Kinetisk energi kan ikke være negativ."; return { verdi:Math.sqrt(2*k.Ek/k.m), uttrykk:"v = √(2·Ek / m)" }; }
+    }
+  },
+  {
+    id:"e1", kategori:"elmag", navn:"Ohms lov",
+    formelVisning:"V = I·R",
+    beskrivelse:"Sammenhengen mellom spenning, strøm og resistans i en enkel krets eller komponent.",
+    variabler:[
+      {symbol:"V", label:"V", navn:"Spenning", enhet:"V"},
+      {symbol:"I", label:"I", navn:"Strøm", enhet:"A"},
+      {symbol:"R", label:"R", navn:"Resistans", enhet:"Ω"}
+    ],
+    losForValg:["V","I","R"],
+    beregn:function(losFor, k){
+      if (losFor === "V") return { verdi:k.I*k.R, uttrykk:"V = I·R" };
+      if (losFor === "I"){ if (k.R===0) throw "Resistansen kan ikke være 0."; return { verdi:k.V/k.R, uttrykk:"I = V / R" }; }
+      if (losFor === "R"){ if (k.I===0) throw "Strømmen kan ikke være 0."; return { verdi:k.V/k.I, uttrykk:"R = V / I" }; }
+    }
+  },
+  {
+    id:"e2", kategori:"elmag", navn:"Elektrisk effekt",
+    formelVisning:"P = V·I",
+    beskrivelse:"Effekten som avsettes i en komponent, gitt spenning og strøm.",
+    variabler:[
+      {symbol:"P", label:"P", navn:"Effekt", enhet:"W"},
+      {symbol:"V", label:"V", navn:"Spenning", enhet:"V"},
+      {symbol:"I", label:"I", navn:"Strøm", enhet:"A"}
+    ],
+    losForValg:["P","V","I"],
+    beregn:function(losFor, k){
+      if (losFor === "P") return { verdi:k.V*k.I, uttrykk:"P = V·I" };
+      if (losFor === "V"){ if (k.I===0) throw "Strømmen kan ikke være 0."; return { verdi:k.P/k.I, uttrykk:"V = P / I" }; }
+      if (losFor === "I"){ if (k.V===0) throw "Spenningen kan ikke være 0."; return { verdi:k.P/k.V, uttrykk:"I = P / V" }; }
+    }
+  },
+  {
+    id:"t1", kategori:"termo", navn:"Varme ved temperaturendring",
+    formelVisning:"Q = m·c·ΔT",
+    beskrivelse:"Varmemengden som trengs for å endre temperaturen til et stoff, uten faseovergang.",
+    variabler:[
+      {symbol:"Q", label:"Q", navn:"Varmemengde", enhet:"J"},
+      {symbol:"m", label:"m", navn:"Masse", enhet:"kg"},
+      {symbol:"c", label:"c", navn:"Spesifikk varmekapasitet", enhet:"J/(kg·K)"},
+      {symbol:"dT", label:"ΔT", navn:"Temperaturendring", enhet:"K"}
+    ],
+    losForValg:["Q","m","c","dT"],
+    beregn:function(losFor, k){
+      if (losFor === "Q") return { verdi:k.m*k.c*k.dT, uttrykk:"Q = m·c·ΔT" };
+      if (losFor === "m"){ if (k.c*k.dT===0) throw "c og ΔT kan ikke være 0."; return { verdi:k.Q/(k.c*k.dT), uttrykk:"m = Q / (c·ΔT)" }; }
+      if (losFor === "c"){ if (k.m*k.dT===0) throw "m og ΔT kan ikke være 0."; return { verdi:k.Q/(k.m*k.dT), uttrykk:"c = Q / (m·ΔT)" }; }
+      if (losFor === "dT"){ if (k.m*k.c===0) throw "m og c kan ikke være 0."; return { verdi:k.Q/(k.m*k.c), uttrykk:"ΔT = Q / (m·c)" }; }
+    }
+  },
+  {
+    id:"t2", kategori:"termo", navn:"Latent varme ved faseovergang",
+    formelVisning:"Q = m·L",
+    beskrivelse:"Varmemengden som trengs for å smelte eller fordampe et stoff, ved konstant temperatur.",
+    variabler:[
+      {symbol:"Q", label:"Q", navn:"Varmemengde", enhet:"J"},
+      {symbol:"m", label:"m", navn:"Masse", enhet:"kg"},
+      {symbol:"L", label:"L", navn:"Spesifikk latent varme", enhet:"J/kg"}
+    ],
+    losForValg:["Q","m","L"],
+    beregn:function(losFor, k){
+      if (losFor === "Q") return { verdi:k.m*k.L, uttrykk:"Q = m·L" };
+      if (losFor === "m"){ if (k.L===0) throw "L kan ikke være 0."; return { verdi:k.Q/k.L, uttrykk:"m = Q / L" }; }
+      if (losFor === "L"){ if (k.m===0) throw "Massen kan ikke være 0."; return { verdi:k.Q/k.m, uttrykk:"L = Q / m" }; }
+    }
+  },
+  {
+    id:"b1", kategori:"bolger", navn:"Bølgehastighet",
+    formelVisning:"v = f·λ",
+    beskrivelse:"Sammenhengen mellom bølgehastighet, frekvens og bølgelengde for enhver bølge.",
+    variabler:[
+      {symbol:"v", label:"v", navn:"Bølgehastighet", enhet:"m/s"},
+      {symbol:"f", label:"f", navn:"Frekvens", enhet:"Hz"},
+      {symbol:"lambda", label:"λ", navn:"Bølgelengde", enhet:"m"}
+    ],
+    losForValg:["v","f","lambda"],
+    beregn:function(losFor, k){
+      if (losFor === "v") return { verdi:k.f*k.lambda, uttrykk:"v = f·λ" };
+      if (losFor === "f"){ if (k.lambda===0) throw "Bølgelengden kan ikke være 0."; return { verdi:k.v/k.lambda, uttrykk:"f = v / λ" }; }
+      if (losFor === "lambda"){ if (k.f===0) throw "Frekvensen kan ikke være 0."; return { verdi:k.v/k.f, uttrykk:"λ = v / f" }; }
+    }
+  },
+  {
+    id:"b2", kategori:"bolger", navn:"Brytning - Snells lov",
+    formelVisning:"n₁·sin(θ₁) = n₂·sin(θ₂)",
+    beskrivelse:"Hvordan lys bøyes av når det går fra ett medium til et annet. Vinkler oppgis i grader.",
+    variabler:[
+      {symbol:"n1", label:"n₁", navn:"Brytningsindeks, medium 1", enhet:""},
+      {symbol:"theta1", label:"θ₁", navn:"Innfallsvinkel", enhet:"°"},
+      {symbol:"n2", label:"n₂", navn:"Brytningsindeks, medium 2", enhet:""},
+      {symbol:"theta2", label:"θ₂", navn:"Brytningsvinkel", enhet:"°"}
+    ],
+    losForValg:["theta2","theta1","n1","n2"],
+    beregn:function(losFor, k){
+      if (losFor === "theta2"){
+        const s = k.n1*Math.sin(rad(k.theta1))/k.n2;
+        if (Math.abs(s) > 1) throw "Ingen løsning med disse verdiene (mulig totalrefleksjon).";
+        return { verdi:deg(Math.asin(s)), uttrykk:"θ₂ = asin(n₁·sin(θ₁) / n₂)" };
+      }
+      if (losFor === "theta1"){
+        const s = k.n2*Math.sin(rad(k.theta2))/k.n1;
+        if (Math.abs(s) > 1) throw "Ingen løsning med disse verdiene.";
+        return { verdi:deg(Math.asin(s)), uttrykk:"θ₁ = asin(n₂·sin(θ₂) / n₁)" };
+      }
+      if (losFor === "n1"){
+        const sin1 = Math.sin(rad(k.theta1));
+        if (sin1 === 0) throw "sin(θ₁) kan ikke være 0.";
+        return { verdi:k.n2*Math.sin(rad(k.theta2))/sin1, uttrykk:"n₁ = n₂·sin(θ₂) / sin(θ₁)" };
+      }
+      if (losFor === "n2"){
+        const sin2 = Math.sin(rad(k.theta2));
+        if (sin2 === 0) throw "sin(θ₂) kan ikke være 0.";
+        return { verdi:k.n1*Math.sin(rad(k.theta1))/sin2, uttrykk:"n₂ = n₁·sin(θ₁) / sin(θ₂)" };
+      }
+    }
+  },
+  {
+    id:"f1", kategori:"moderne", navn:"Fotonenergi",
+    formelVisning:"E = h·c / λ",
+    beskrivelse:"Energien til et enkelt foton, gitt bølgelengden. h = 6,626×10⁻³⁴ J·s, c = 2,998×10⁸ m/s.",
+    variabler:[
+      {symbol:"E", label:"E", navn:"Fotonenergi", enhet:"J"},
+      {symbol:"lambda", label:"λ", navn:"Bølgelengde", enhet:"m"}
+    ],
+    losForValg:["E","lambda"],
+    beregn:function(losFor, k){
+      const h = 6.626e-34, c = 2.998e8;
+      if (losFor === "E") return { verdi:(h*c)/k.lambda, uttrykk:"E = h·c / λ" };
+      if (losFor === "lambda"){ if (k.E===0) throw "Energien kan ikke være 0."; return { verdi:(h*c)/k.E, uttrykk:"λ = h·c / E" }; }
+    }
+  },
+  {
+    id:"f2", kategori:"moderne", navn:"Einsteins masse-energi-ekvivalens",
+    formelVisning:"E = m·c²",
+    beskrivelse:"Energien tilsvarende en gitt masse (eller omvendt). c = 2,998×10⁸ m/s.",
+    variabler:[
+      {symbol:"E", label:"E", navn:"Energi", enhet:"J"},
+      {symbol:"m", label:"m", navn:"Masse", enhet:"kg"}
+    ],
+    losForValg:["E","m"],
+    beregn:function(losFor, k){
+      const c = 2.998e8;
+      if (losFor === "E") return { verdi:k.m*c*c, uttrykk:"E = m·c²" };
+      if (losFor === "m"){ if (k.E<0) throw "Energien kan ikke være negativ."; return { verdi:k.E/(c*c), uttrykk:"m = E / c²" }; }
+    }
+  }
+];
+
+const KATEGORIER = [
+  { id:"alle", navn:"Alle" },
+  { id:"mekanikk", navn:"Mekanikk" },
+  { id:"elmag", navn:"Elektrisitet og magnetisme" },
+  { id:"termo", navn:"Termodynamikk" },
+  { id:"bolger", navn:"Bølger og optikk" },
+  { id:"moderne", navn:"Moderne fysikk" }
+];
+
+let valgtKategori = "alle";
+const tilstand = {};
+MALER.forEach(function(m){ tilstand[m.id] = { losFor: m.losForValg[0], verdier:{} }; });
+
+const tabsEl = document.getElementById("tabs");
+const listeEl = document.getElementById("malListe");
+
+function tegnTabs(){
+  tabsEl.innerHTML = "";
+  KATEGORIER.forEach(function(kat){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "tab" + (valgtKategori === kat.id ? " active" : "");
+    b.textContent = kat.navn;
+    b.addEventListener("click", function(){ valgtKategori = kat.id; tegnTabs(); tegnListe(); });
+    tabsEl.appendChild(b);
+  });
+}
+function finnVariabel(mal, symbol){ return mal.variabler.find(function(v){ return v.symbol === symbol; }); }
+
+function tegnPanel(mal, panelEl){
+  panelEl.innerHTML = "";
+  const st = tilstand[mal.id];
+
+  const beskrivelse = document.createElement("p");
+  beskrivelse.className = "beskrivelse";
+  beskrivelse.textContent = mal.beskrivelse;
+  panelEl.appendChild(beskrivelse);
+
+  const formelStor = document.createElement("div");
+  formelStor.className = "formel-stor";
+  formelStor.textContent = mal.formelVisning;
+  panelEl.appendChild(formelStor);
+
+  const feltRad1 = document.createElement("div");
+  feltRad1.className = "felt-rad";
+  const losForFelt = document.createElement("div");
+  losForFelt.className = "felt";
+  const losForLabel = document.createElement("label");
+  losForLabel.textContent = "Løs for";
+  const losForSelect = document.createElement("select");
+  mal.losForValg.forEach(function(symbol){
+    const v = finnVariabel(mal, symbol);
+    const opt = document.createElement("option");
+    opt.value = symbol;
+    opt.textContent = v.label + " - " + v.navn;
+    if (symbol === st.losFor) opt.selected = true;
+    losForSelect.appendChild(opt);
+  });
+  losForSelect.addEventListener("change", function(){ st.losFor = losForSelect.value; tegnPanel(mal, panelEl); });
+  losForFelt.appendChild(losForLabel);
+  losForFelt.appendChild(losForSelect);
+  feltRad1.appendChild(losForFelt);
+  panelEl.appendChild(feltRad1);
+
+  const inputRad = document.createElement("div");
+  inputRad.className = "felt-rad";
+  mal.variabler.forEach(function(v){
+    if (v.symbol === st.losFor) return;
+    const felt = document.createElement("div");
+    felt.className = "felt";
+    const label = document.createElement("label");
+    label.textContent = v.label + " - " + v.navn + (v.enhet ? " (" + v.enhet + ")" : "");
+    const input = document.createElement("input");
+    input.type = "number";
+    input.step = "any";
+    if (st.verdier[v.symbol] !== undefined) input.value = st.verdier[v.symbol];
+    input.addEventListener("input", function(){ st.verdier[v.symbol] = input.value; });
+    felt.appendChild(label);
+    felt.appendChild(input);
+    inputRad.appendChild(felt);
+  });
+  panelEl.appendChild(inputRad);
+
+  const knapp = document.createElement("button");
+  knapp.type = "button";
+  knapp.className = "btn";
+  knapp.textContent = "Regn ut";
+  panelEl.appendChild(knapp);
+
+  const feilEl = document.createElement("div");
+  feilEl.className = "feil";
+  panelEl.appendChild(feilEl);
+
+  const resultatEl = document.createElement("div");
+  resultatEl.className = "resultat";
+  resultatEl.style.display = "none";
+  panelEl.appendChild(resultatEl);
+
+  knapp.addEventListener("click", function(){
+    feilEl.textContent = "";
+    resultatEl.style.display = "none";
+    resultatEl.innerHTML = "";
+
+    const kjente = {};
+    let manglerFelt = false;
+    mal.variabler.forEach(function(v){
+      if (v.symbol === st.losFor) return;
+      const raw = st.verdier[v.symbol];
+      const tall = parseFloat(raw);
+      if (raw === undefined || raw === "" || isNaN(tall)){ manglerFelt = true; }
+      else { kjente[v.symbol] = tall; }
+    });
+    if (manglerFelt){ feilEl.textContent = "Fyll inn alle de kjente verdiene."; return; }
+
+    let ut;
+    try{ ut = mal.beregn(st.losFor, kjente); }
+    catch(e){ feilEl.textContent = typeof e === "string" ? e : "Kunne ikke regne ut med disse verdiene."; return; }
+
+    const losForVar = finnVariabel(mal, st.losFor);
+    const medTall = medTallVisning(ut.uttrykk, mal.variabler, kjente, st.losFor);
+    resultatEl.style.display = "block";
+
+    const linje1 = document.createElement("div");
+    linje1.className = "steg-linje";
+    const merke1 = document.createElement("span"); merke1.className = "merke"; merke1.textContent = "Utledet formel";
+    linje1.appendChild(merke1); linje1.appendChild(document.createTextNode(ut.uttrykk));
+    resultatEl.appendChild(linje1);
+
+    const linje2 = document.createElement("div");
+    linje2.className = "steg-linje";
+    const merke2 = document.createElement("span"); merke2.className = "merke"; merke2.textContent = "Med innsatte tall";
+    linje2.appendChild(merke2); linje2.appendChild(document.createTextNode(medTall));
+    resultatEl.appendChild(linje2);
+
+    const boks = document.createElement("div");
+    boks.className = "svar-boks";
+    const label = document.createElement("div"); label.className = "label"; label.textContent = "Svar (" + losForVar.label + ")";
+    const verdi = document.createElement("div"); verdi.className = "verdi";
+    verdi.textContent = formatTall(ut.verdi) + (losForVar.enhet ? (" " + losForVar.enhet) : "");
+    boks.appendChild(label); boks.appendChild(verdi);
+    resultatEl.appendChild(boks);
+  });
+}
+
+function tegnListe(){
+  listeEl.innerHTML = "";
+  const filtrert = MALER.filter(function(m){ return valgtKategori === "alle" || m.kategori === valgtKategori; });
+  filtrert.forEach(function(mal){
+    const kort = document.createElement("div");
+    kort.className = "mal-kort";
+    kort.dataset.id = mal.id;
+
+    const hode = document.createElement("button");
+    hode.type = "button";
+    hode.className = "mal-hode";
+    const navnSpan = document.createElement("span"); navnSpan.className = "navn"; navnSpan.textContent = mal.navn;
+    const formelSpan = document.createElement("span"); formelSpan.className = "formel"; formelSpan.textContent = mal.formelVisning;
+    hode.appendChild(navnSpan); hode.appendChild(formelSpan);
+
+    const panel = document.createElement("div");
+    panel.className = "mal-panel";
+
+    hode.addEventListener("click", function(){
+      const varApen = kort.classList.contains("apen");
+      document.querySelectorAll(".mal-kort.apen").forEach(function(el){ el.classList.remove("apen"); });
+      if (!varApen){ kort.classList.add("apen"); tegnPanel(mal, panel); }
+    });
+
+    kort.appendChild(hode);
+    kort.appendChild(panel);
+    listeEl.appendChild(kort);
+  });
+}
+
+tegnTabs();
+tegnListe();
+
+if ("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+</script>
+</body>
+</html>
