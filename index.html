@@ -67,6 +67,16 @@ header h1{ font-size:clamp(30px,6vw,42px); letter-spacing:-0.01em; }
 .boks ol{ margin:0; padding-left:20px; font-size:14.5px; color:var(--ink-soft); }
 .boks li{ margin-bottom:5px; }
 
+.ki-kompakt{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; font-size:14px; color:var(--ink-soft); }
+
+.kropper-overlay{
+  position:fixed; inset:0; background:rgba(10,12,15,0.75);
+  display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;
+}
+.kropper-boks{ background:var(--panel); border:1px solid var(--grid-line); padding:20px; max-width:100%; }
+.kropper-tekst{ font-size:13.5px; color:var(--ink-soft); margin:0 0 12px; max-width:60ch; }
+#kropperCanvas{ display:block; touch-action:none; border:1px solid var(--grid-line); max-width:100%; cursor:crosshair; }
+
 .felt-rad{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
 @media (max-width:520px){ .felt-rad{ grid-template-columns:1fr; } }
 .felt label{ display:block; font:500 13px var(--font-sans); color:var(--ink-soft); margin-bottom:6px; }
@@ -162,37 +172,47 @@ footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); 
 
   <div class="boks">
     <h3>KI-tilkobling (valgfritt - din egen nøkkel)</h3>
-    <p class="under">Ingen konto hos oss, ingen innlogging her på siden. Du bruker din egen gratis nøkkel fra Google Gemini (anbefalt - krever ikke betalingskort) eller Anthropic Claude (krever betalingskort). Nøkkelen lagres kun i denne nettleseren og sendes direkte til leverandøren når du løser en oppgave - aldri innom noen mellomtjener.</p>
-    <div class="felt-rad">
-      <div class="felt">
-        <label for="kiLeverandor">Leverandør</label>
-        <select id="kiLeverandor">
-          <option value="gemini">Google Gemini (gratis, ingen kort)</option>
-          <option value="claude">Anthropic Claude (krever kort)</option>
-        </select>
-      </div>
-      <div class="felt">
-        <label for="kiNokkelInput">API-nøkkel</label>
-        <input type="password" id="kiNokkelInput" placeholder="Lim inn nøkkelen din">
-      </div>
+    <div class="ki-kompakt" id="kiKompakt" hidden>
+      <span id="kiKompaktTekst"></span>
+      <button type="button" class="btn svak" id="kiEndreBtn">Endre tilkobling</button>
     </div>
-    <div class="knapp-rad">
-      <button type="button" class="btn" id="kiLagreBtn">Lagre nøkkel</button>
-      <button type="button" class="btn svak" id="kiFjernBtn">Fjern nøkkel</button>
+    <div id="kiEkspandert">
+      <p class="under">Ingen konto hos oss, ingen innlogging her på siden. Du bruker din egen gratis nøkkel fra Google Gemini (anbefalt - krever ikke betalingskort) eller Anthropic Claude (krever betalingskort). Nøkkelen lagres kun i denne nettleseren og sendes direkte til leverandøren når du løser en oppgave - aldri innom noen mellomtjener.</p>
+      <div class="felt-rad">
+        <div class="felt">
+          <label for="kiLeverandor">Leverandør</label>
+          <select id="kiLeverandor">
+            <option value="gemini">Google Gemini (gratis, ingen kort)</option>
+            <option value="claude">Anthropic Claude (krever kort)</option>
+          </select>
+        </div>
+        <div class="felt">
+          <label for="kiNokkelInput">API-nøkkel</label>
+          <input type="password" id="kiNokkelInput" placeholder="Lim inn nøkkelen din">
+        </div>
+      </div>
+      <div class="knapp-rad">
+        <button type="button" class="btn" id="kiLagreBtn">Lagre nøkkel</button>
+        <button type="button" class="btn svak" id="kiFjernBtn">Fjern nøkkel</button>
+        <button type="button" class="btn svak" id="kiSkjulBtn">Skjul</button>
+      </div>
+      <div class="status-linje" id="kiNokkelStatus"></div>
+      <p class="under" id="kiHjelpLenke" style="margin:12px 0 0;"></p>
     </div>
-    <div class="status-linje" id="kiNokkelStatus"></div>
-    <p class="under" id="kiHjelpLenke" style="margin:12px 0 0;"></p>
   </div>
 
   <div class="boks">
     <h3>Løs en oppgave med KI</h3>
     <textarea id="kiProblemInput" placeholder="F.eks.: En bil bremser fra 20 m/s til stopp i løpet av 5 sekunder. Hvor langt kjører den før den stopper?"></textarea>
     <div class="foto-rad">
-      <button type="button" class="btn svak" id="kiFotoBtn">Ta bilde av oppgaven</button>
+      <button type="button" class="btn svak" id="kiFotoBtn">Ta bilde</button>
+      <button type="button" class="btn svak" id="kiLastOppBtn">Last opp bilde</button>
       <input type="file" id="kiFotoInput" accept="image/*" capture="environment" hidden>
+      <input type="file" id="kiLastOppInput" accept="image/*" hidden>
       <div class="foto-forhandsvisning" id="kiFotoForhandsvisning" hidden>
         <img id="kiFotoThumb" alt="Bilde av oppgaven">
         <span id="kiFotoNavn"></span>
+        <button type="button" id="kiFotoBeskjaerPaNytt">Beskjær på nytt</button>
         <button type="button" id="kiFotoFjern">Fjern bilde</button>
       </div>
     </div>
@@ -202,6 +222,18 @@ footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); 
     <div class="loadbar" id="kiLoadbar"><span></span></div>
     <div class="status-linje" id="kiStatus"></div>
     <div class="resultat" id="kiResultat" style="display:none;"></div>
+  </div>
+
+  <div class="kropper-overlay" id="kropperOverlay" hidden>
+    <div class="kropper-boks">
+      <p class="kropper-tekst">Dra over bildet for å velge området med oppgaven - resten blir ikke sendt til KI-en.</p>
+      <canvas id="kropperCanvas"></canvas>
+      <div class="knapp-rad">
+        <button type="button" class="btn" id="kropperBrukUtvalgBtn" disabled>Bruk utvalg</button>
+        <button type="button" class="btn svak" id="kropperBrukHeleBtn">Bruk hele bildet</button>
+        <button type="button" class="btn svak" id="kropperAvbrytBtn">Avbryt</button>
+      </div>
+    </div>
   </div>
 
   <div class="boks">
@@ -269,8 +301,13 @@ const kiLeverandorSelect = document.getElementById("kiLeverandor");
 const kiNokkelInput = document.getElementById("kiNokkelInput");
 const kiLagreBtn = document.getElementById("kiLagreBtn");
 const kiFjernBtn = document.getElementById("kiFjernBtn");
+const kiSkjulBtn = document.getElementById("kiSkjulBtn");
 const kiNokkelStatus = document.getElementById("kiNokkelStatus");
 const kiHjelpLenke = document.getElementById("kiHjelpLenke");
+const kiKompakt = document.getElementById("kiKompakt");
+const kiKompaktTekst = document.getElementById("kiKompaktTekst");
+const kiEkspandert = document.getElementById("kiEkspandert");
+const kiEndreBtn = document.getElementById("kiEndreBtn");
 
 function lesLagretNokkel(){
   try{
@@ -316,6 +353,24 @@ function oppdaterNokkelStatus(){
     kiNokkelStatus.className = "status-linje";
   }
 }
+function oppdaterKiVisning(){
+  const lagret = lesLagretNokkel();
+  if (lagret.nokkel){
+    const maske = lagret.nokkel.length > 6 ? ("••••" + lagret.nokkel.slice(-4)) : "••••";
+    const navn = lagret.leverandor === "claude" ? "Anthropic Claude" : "Google Gemini";
+    kiKompaktTekst.textContent = "KI-tilkobling: " + navn + " (" + maske + ")";
+    kiKompakt.hidden = false;
+    kiEkspandert.hidden = true;
+  } else {
+    kiKompakt.hidden = true;
+    kiEkspandert.hidden = false;
+  }
+}
+kiEndreBtn.addEventListener("click", function(){
+  kiKompakt.hidden = true;
+  kiEkspandert.hidden = false;
+});
+kiSkjulBtn.addEventListener("click", oppdaterKiVisning);
 kiLeverandorSelect.addEventListener("change", oppdaterHjelpLenke);
 kiLagreBtn.addEventListener("click", function(){
   const leverandor = kiLeverandorSelect.value;
@@ -327,7 +382,7 @@ kiLagreBtn.addEventListener("click", function(){
   }
   const ok = lagreNokkelLokalt(leverandor, nokkel);
   kiNokkelInput.value = "";
-  if (ok){ oppdaterNokkelStatus(); }
+  if (ok){ oppdaterNokkelStatus(); oppdaterKiVisning(); }
   else {
     kiNokkelStatus.textContent = "Kunne ikke lagre nøkkelen i denne nettleseren.";
     kiNokkelStatus.className = "status-linje err";
@@ -336,9 +391,11 @@ kiLagreBtn.addEventListener("click", function(){
 kiFjernBtn.addEventListener("click", function(){
   fjernNokkelLokalt();
   oppdaterNokkelStatus();
+  oppdaterKiVisning();
 });
 oppdaterHjelpLenke();
 oppdaterNokkelStatus();
+oppdaterKiVisning();
 
 /* ---------- KI-kall ---------- */
 function renseJson(tekst){
@@ -452,33 +509,151 @@ const kiStatusEl = document.getElementById("kiStatus");
 const kiResultatEl = document.getElementById("kiResultat");
 const kiFotoBtn = document.getElementById("kiFotoBtn");
 const kiFotoInput = document.getElementById("kiFotoInput");
+const kiLastOppBtn = document.getElementById("kiLastOppBtn");
+const kiLastOppInput = document.getElementById("kiLastOppInput");
 const kiFotoForhandsvisning = document.getElementById("kiFotoForhandsvisning");
 const kiFotoThumb = document.getElementById("kiFotoThumb");
 const kiFotoNavn = document.getElementById("kiFotoNavn");
 const kiFotoFjern = document.getElementById("kiFotoFjern");
+const kiFotoBeskjaerPaNytt = document.getElementById("kiFotoBeskjaerPaNytt");
 
-let valgtBilde = null; // { data: base64 (uten prefiks), mimeType }
+const kropperOverlay = document.getElementById("kropperOverlay");
+const kropperCanvas = document.getElementById("kropperCanvas");
+const kropperBrukUtvalgBtn = document.getElementById("kropperBrukUtvalgBtn");
+const kropperBrukHeleBtn = document.getElementById("kropperBrukHeleBtn");
+const kropperAvbrytBtn = document.getElementById("kropperAvbrytBtn");
+
+let valgtBilde = null;        // { data: base64 (uten prefiks), mimeType } - det som sendes til KI-en
+let sisteOriginalBilde = null; // Image-objekt i full oppløsning, for a kunne beskjære på nytt
+let kropperSkala = 1;
+let kropperUtvalg = null;
+let kropperDrar = false;
+let kropperStartX = 0, kropperStartY = 0;
+
+function lastFilOgApneKropper(fil){
+  if (!fil) return;
+  const leser = new FileReader();
+  leser.onload = function(){
+    const img = new Image();
+    img.onload = function(){ apneKropper(img); };
+    img.src = leser.result;
+  };
+  leser.readAsDataURL(fil);
+}
 
 kiFotoBtn.addEventListener("click", function(){ kiFotoInput.click(); });
 kiFotoInput.addEventListener("change", function(){
   const fil = kiFotoInput.files && kiFotoInput.files[0];
-  if (!fil) return;
-  const leser = new FileReader();
-  leser.onload = function(){
-    const resultat = leser.result;
-    const komma = resultat.indexOf(",");
-    valgtBilde = { data: resultat.slice(komma + 1), mimeType: fil.type || "image/jpeg" };
-    kiFotoNavn.textContent = fil.name || "bilde";
-    kiFotoThumb.src = resultat;
-    kiFotoForhandsvisning.hidden = false;
-  };
-  leser.readAsDataURL(fil);
+  lastFilOgApneKropper(fil);
+  kiFotoInput.value = "";
+});
+kiLastOppBtn.addEventListener("click", function(){ kiLastOppInput.click(); });
+kiLastOppInput.addEventListener("change", function(){
+  const fil = kiLastOppInput.files && kiLastOppInput.files[0];
+  lastFilOgApneKropper(fil);
+  kiLastOppInput.value = "";
+});
+kiFotoBeskjaerPaNytt.addEventListener("click", function(){
+  if (sisteOriginalBilde){ apneKropper(sisteOriginalBilde); }
 });
 kiFotoFjern.addEventListener("click", function(){
   valgtBilde = null;
-  kiFotoInput.value = "";
+  sisteOriginalBilde = null;
   kiFotoForhandsvisning.hidden = true;
 });
+
+function apneKropper(img){
+  sisteOriginalBilde = img;
+  const maxBredde = Math.min(520, Math.max(240, window.innerWidth - 72));
+  kropperSkala = Math.min(1, maxBredde / img.naturalWidth);
+  kropperCanvas.width = Math.round(img.naturalWidth * kropperSkala);
+  kropperCanvas.height = Math.round(img.naturalHeight * kropperSkala);
+  kropperUtvalg = null;
+  kropperBrukUtvalgBtn.disabled = true;
+  tegnKropperBase();
+  kropperOverlay.hidden = false;
+}
+function tegnKropperBase(){
+  const ctx = kropperCanvas.getContext("2d");
+  ctx.clearRect(0, 0, kropperCanvas.width, kropperCanvas.height);
+  ctx.drawImage(sisteOriginalBilde, 0, 0, kropperCanvas.width, kropperCanvas.height);
+}
+function tegnKropperMedUtvalg(){
+  tegnKropperBase();
+  if (!kropperUtvalg || kropperUtvalg.w < 1 || kropperUtvalg.h < 1) return;
+  const ctx = kropperCanvas.getContext("2d");
+  ctx.save();
+  ctx.fillStyle = "rgba(10,12,15,0.55)";
+  ctx.fillRect(0, 0, kropperCanvas.width, kropperCanvas.height);
+  const sx = kropperUtvalg.x / kropperSkala, sy = kropperUtvalg.y / kropperSkala;
+  const sw = kropperUtvalg.w / kropperSkala, sh = kropperUtvalg.h / kropperSkala;
+  ctx.drawImage(sisteOriginalBilde, sx, sy, sw, sh, kropperUtvalg.x, kropperUtvalg.y, kropperUtvalg.w, kropperUtvalg.h);
+  ctx.restore();
+  ctx.strokeStyle = "#B8860B";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(kropperUtvalg.x, kropperUtvalg.y, kropperUtvalg.w, kropperUtvalg.h);
+}
+function kropperPunkt(e){
+  const rect = kropperCanvas.getBoundingClientRect();
+  const skalaX = kropperCanvas.width / rect.width;
+  const skalaY = kropperCanvas.height / rect.height;
+  return { x:(e.clientX - rect.left) * skalaX, y:(e.clientY - rect.top) * skalaY };
+}
+kropperCanvas.addEventListener("pointerdown", function(e){
+  const p = kropperPunkt(e);
+  kropperStartX = p.x; kropperStartY = p.y;
+  kropperDrar = true;
+  kropperUtvalg = { x:kropperStartX, y:kropperStartY, w:0, h:0 };
+  kropperCanvas.setPointerCapture(e.pointerId);
+});
+kropperCanvas.addEventListener("pointermove", function(e){
+  if (!kropperDrar) return;
+  const p = kropperPunkt(e);
+  kropperUtvalg = {
+    x: Math.min(kropperStartX, p.x), y: Math.min(kropperStartY, p.y),
+    w: Math.abs(p.x - kropperStartX), h: Math.abs(p.y - kropperStartY)
+  };
+  tegnKropperMedUtvalg();
+});
+kropperCanvas.addEventListener("pointerup", function(){
+  kropperDrar = false;
+  if (kropperUtvalg && kropperUtvalg.w > 10 && kropperUtvalg.h > 10){
+    kropperBrukUtvalgBtn.disabled = false;
+  } else {
+    kropperUtvalg = null;
+    kropperBrukUtvalgBtn.disabled = true;
+    tegnKropperBase();
+  }
+});
+
+function fullforKropping(sx, sy, sw, sh){
+  const utCanvas = document.createElement("canvas");
+  utCanvas.width = Math.max(1, Math.round(sw));
+  utCanvas.height = Math.max(1, Math.round(sh));
+  const utCtx = utCanvas.getContext("2d");
+  utCtx.drawImage(sisteOriginalBilde, sx, sy, sw, sh, 0, 0, utCanvas.width, utCanvas.height);
+  const dataUrl = utCanvas.toDataURL("image/jpeg", 0.9);
+  const komma = dataUrl.indexOf(",");
+  valgtBilde = { data: dataUrl.slice(komma + 1), mimeType: "image/jpeg" };
+  kiFotoThumb.src = dataUrl;
+  kiFotoNavn.textContent = "Bilde av oppgaven";
+  kiFotoForhandsvisning.hidden = false;
+  kropperOverlay.hidden = true;
+}
+kropperBrukUtvalgBtn.addEventListener("click", function(){
+  if (!kropperUtvalg) return;
+  fullforKropping(
+    kropperUtvalg.x / kropperSkala, kropperUtvalg.y / kropperSkala,
+    kropperUtvalg.w / kropperSkala, kropperUtvalg.h / kropperSkala
+  );
+});
+kropperBrukHeleBtn.addEventListener("click", function(){
+  fullforKropping(0, 0, sisteOriginalBilde.naturalWidth, sisteOriginalBilde.naturalHeight);
+});
+kropperAvbrytBtn.addEventListener("click", function(){
+  kropperOverlay.hidden = true;
+});
+
 
 function settKiStatus(tekst, type){
   kiStatusEl.textContent = tekst || "";
