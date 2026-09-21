@@ -231,12 +231,13 @@ footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); 
         <circle cx="24" cy="56" r="5" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
         <circle cx="76" cy="56" r="5" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
         <circle cx="50" cy="54" r="26" fill="var(--panel)" stroke="var(--ink)" stroke-width="2.5"/>
-        <path d="M36 44 Q42 40 47 43" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        <path d="M53 43 Q58 40 64 44" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        <path d="M38 52 Q42 55 46 52" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        <path d="M54 52 Q58 55 62 52" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M35 41 Q42 35 48 40" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M52 40 Q58 35 65 41" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <circle cx="42" cy="50" r="3" fill="var(--ink)"/>
+        <circle cx="58" cy="50" r="3" fill="var(--ink)"/>
         <path d="M49 54 L47 64 Q50 66 53 64" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
         <path d="M34 68 Q42 64 50 67 Q58 64 66 68 Q58 73 50 70 Q42 73 34 68 Z" fill="var(--ink)"/>
+        <ellipse cx="50" cy="78" rx="6" ry="10" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
         <g stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round">
           <path d="M82 46 L88 46"/>
           <path d="M85 43 L85 49"/>
@@ -344,7 +345,7 @@ footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); 
   </div>
 </main>
 
-<footer>Fysikkforklarer v0.02 (beta) - utviklet av Mads Fjærem. Prototype/test. KI-nøkkelen din lagres kun lokalt i denne nettleseren.</footer>
+<footer>Fysikkforklarer v0.03 (beta) - utviklet av Mads Fjærem. Prototype/test. KI-nøkkelen din lagres kun lokalt i denne nettleseren.</footer>
 
 <script>
 /* ---------- Fellesfunksjoner ---------- */
@@ -625,7 +626,7 @@ async function kallClaude(prompt, nokkel, bilde){
 
 function byggLosPrompt(tekst, harBilde){
   const linjer = [
-    "Du er en erfaren fysikklærer på videregående- og universitetsnivå. Du skal tolke og løse en fysikkoppgave steg for steg, på norsk bokmål.",
+    "Du er en tålmodig fysikklærer som forklarer ting for noen som ikke kan fysikk fra før. Du skal tolke og løse en fysikkoppgave, på norsk bokmål, med veldig enkle og detaljerte steg.",
     ""
   ];
   if (harBilde){
@@ -659,7 +660,9 @@ function byggLosPrompt(tekst, harBilde){
     "- Hvis dette ikke er en fysikkoppgave, eller et vedlagt bilde er uleselig, sett \"gjenkjent_som_fysikk\" til false og forklar kort i \"melding_hvis_ikke_fysikk\" på norsk. La de andre feltene være tomme strenger eller tomme lister.",
     "- Bruk SI-enheter der ikke annet er oppgitt eller naturlig, og vis enhet sammen med alle tallverdier.",
     "- \"uttrykk\" i hvert steg skal vise selve formelen eller regnestykket. Bruk tom streng hvis steget er rent forklarende.",
-    "- Vis relevant mellomregning, men vær ikke unødvendig langdryg.",
+    "- Del opp løsningen i MANGE små steg i stedet for få store steg. Hvert steg skal gjøre bare én ting (f.eks. ett steg for å identifisere hvilken formel som passer, ett steg for å isolere den ukjente, ett steg for å sette inn tall, ett steg for å regne ut - ikke slå sammen disse).",
+    "- I \"tekst\" for hvert steg: forklar både HVA du gjør og HVORFOR, med enkle ord og korte setninger - skriv som om du forklarer det til noen som aldri har hatt fysikk før. Unngå fagord uten en kort forklaring første gang de brukes (skriv f.eks. «akselerasjon (hvor mye farten endrer seg per sekund)» ved første bruk).",
+    "- Ikke hopp over regnetrinn - vis alle mellomregninger, ett tall om gangen, i \"uttrykk\".",
     "- \"svar\" skal være selve sluttsvaret, kort og tydelig, med riktig enhet.",
     "- Returner utelukkende gyldig JSON - ingen kommentarer, ingen avsluttende komma, ingen tekst før eller etter."
   );
