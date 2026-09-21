@@ -23,8 +23,14 @@
   --rule:         #D9B4B4;
   --accent:       #B8860B;
   --accent-ink:   #2A2109;
+  --accent-tint:  rgba(184,134,11,0.10);
   --avvik:        #B3261E;
   --ok:           #2E6B3E;
+  --c-mekanikk:   #2E7D6B;
+  --c-elmag:      #1E6FA8;
+  --c-termo:      #C1440E;
+  --c-bolger:     #6A4C93;
+  --c-moderne:    #B8305F;
   --font-serif:  "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-sans:   "IBM Plex Sans", Arial, Helvetica, sans-serif;
   --font-mono:   "IBM Plex Mono", "Courier New", monospace;
@@ -33,11 +39,15 @@
   :root:not([data-theme="light"]){
     --paper:#14181D; --grid-line:#232A31; --panel:#1B2128;
     --ink:#E8ECEF; --ink-soft:#97A3AF; --rule:#5B4040; --accent:#D9A62E; --accent-ink:#14100A; --ok:#6FBE85;
+    --accent-tint: rgba(217,166,46,0.12);
+    --c-mekanikk:#4FB69B; --c-elmag:#5AA6E0; --c-termo:#E37A46; --c-bolger:#A683D6; --c-moderne:#E06B95;
   }
 }
 :root[data-theme="dark"]{
   --paper:#14181D; --grid-line:#232A31; --panel:#1B2128;
   --ink:#E8ECEF; --ink-soft:#97A3AF; --rule:#5B4040; --accent:#D9A62E; --accent-ink:#14100A; --ok:#6FBE85;
+  --accent-tint: rgba(217,166,46,0.12);
+  --c-mekanikk:#4FB69B; --c-elmag:#5AA6E0; --c-termo:#E37A46; --c-bolger:#A683D6; --c-moderne:#E06B95;
 }
 *{ box-sizing:border-box; }
 [hidden]{ display:none !important; }
@@ -55,18 +65,36 @@ h1,h2,h3{ font-family:var(--font-serif); font-weight:600; margin:0; color:var(--
   position:relative; max-width:760px; margin:32px auto 64px;
   background:var(--panel); border:1px solid var(--grid-line);
   padding:52px 40px 48px 76px;
+  overflow:hidden;
 }
-.page::before{ content:""; position:absolute; left:48px; top:0; bottom:0; width:2px; background:var(--rule); opacity:0.7; }
+.page::before{ content:""; position:absolute; left:48px; top:6px; bottom:0; width:2px; background:var(--rule); opacity:0.7; }
+.spektrum{ position:absolute; top:0; left:0; right:0; height:6px; background:linear-gradient(90deg,#E1483C,#F2994A,#F2D94E,#4CAF6D,#2E86DE,#8E5CD9,#D9469A); }
 @media (max-width:640px){ .page{ padding:36px 20px 36px 42px; margin:16px 10px 48px; } .page::before{ left:24px; } }
 
 header p.sub{ font-size:16px; color:var(--ink-soft); max-width:58ch; margin-top:14px; line-height:1.6; }
 header h1{ font-size:clamp(30px,6vw,42px); letter-spacing:-0.01em; }
 
-.boks{ margin:0 0 28px; padding:20px 22px; background:var(--paper); border:1px solid var(--grid-line); }
+.einstein-rad{ display:flex; align-items:center; gap:16px; margin:22px 0 30px; }
+.einstein-knapp{ background:none; border:none; padding:0; cursor:pointer; line-height:0; transition:transform 0.25s ease; }
+.einstein-knapp:hover{ transform:rotate(-6deg) scale(1.08); }
+.einstein-knapp:active{ transform:rotate(4deg) scale(0.94); }
+.einstein-tekst{ font-size:13.5px; color:var(--ink-soft); max-width:32ch; }
+
+.funfact-overlay{
+  position:fixed; inset:0; background:rgba(10,12,15,0.75);
+  display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;
+}
+.funfact-boks{ background:var(--panel); border:1px solid var(--grid-line); padding:28px; max-width:420px; text-align:center; }
+.funfact-label{ font-family:var(--font-serif); font-size:14px; color:var(--accent); font-weight:600; margin-bottom:10px; }
+.funfact-tekst{ font-size:17px; line-height:1.55; margin-bottom:22px; }
+.funfact-boks .knapp-rad{ justify-content:center; }
+
+.boks{ margin:0 0 28px; padding:20px 22px; background:var(--paper); border:1px solid var(--grid-line); transition:padding 0.15s ease; }
 .boks h3{ font-size:16px; margin-bottom:8px; }
 .boks .under{ font-size:13.5px; color:var(--ink-soft); margin-bottom:14px; line-height:1.6; }
 .boks ol{ margin:0; padding-left:20px; font-size:14.5px; color:var(--ink-soft); }
 .boks li{ margin-bottom:5px; }
+.boks.boks-minimert{ background:transparent; border-color:transparent; padding:0 0 20px; }
 
 .ki-kompakt{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; font-size:14px; color:var(--ink-soft); }
 
@@ -91,11 +119,13 @@ header h1{ font-size:clamp(30px,6vw,42px); letter-spacing:-0.01em; }
 .knapp-rad{ display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
 .btn{
   display:inline-block; font:600 15px var(--font-sans); color:var(--ink); background:transparent;
-  border:1px solid var(--ink); padding:12px 26px; cursor:pointer;
+  border:1px solid var(--ink); padding:12px 26px; cursor:pointer; transition:transform 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
-.btn:hover{ background:var(--ink); color:var(--panel); }
+.btn:hover:not(:disabled){ background:var(--ink); color:var(--panel); transform:translateY(-1px); }
+.btn:active:not(:disabled){ transform:translateY(0); }
 .btn:disabled{ opacity:0.5; cursor:default; }
 .btn.svak{ border-color:var(--ink-soft); color:var(--ink-soft); }
+
 
 .status-linje{ margin-top:12px; font-size:13.5px; color:var(--ink-soft); }
 .status-linje.err{ color:var(--avvik); }
@@ -135,6 +165,7 @@ textarea:focus{ outline:none; border-color:var(--accent); }
 
 .svar-boks{ position:relative; background:var(--panel); border:1px solid var(--grid-line); padding:20px 22px; margin-top:8px; }
 .svar-boks::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--accent); }
+.svar-boks{ background:var(--accent-tint); }
 .svar-boks .label{ font:600 13px var(--font-sans); color:var(--ink-soft); margin-bottom:4px; }
 .svar-boks .verdi{ font:600 24px var(--font-serif); }
 
@@ -142,11 +173,23 @@ textarea:focus{ outline:none; border-color:var(--accent); }
 .sjekk strong{ color:var(--ink); font-family:var(--font-sans); }
 
 .tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 24px; }
-.tab{ font:500 14px var(--font-sans); padding:7px 14px; border:1px solid var(--ink-soft); border-top:3px solid var(--ink-soft); background:transparent; color:var(--ink); cursor:pointer; }
+.tab{ font:500 14px var(--font-sans); padding:7px 14px; border:1px solid var(--ink-soft); border-top:3px solid var(--ink-soft); background:transparent; color:var(--ink); cursor:pointer; transition:transform 0.12s ease, background 0.12s ease; }
+.tab:hover{ transform:translateY(-1px); }
 .tab.active{ border-color:var(--accent); border-top-color:var(--accent); background:var(--accent); color:var(--accent-ink); font-weight:600; }
+.tab[data-kategori="mekanikk"].active{ background:var(--c-mekanikk); border-color:var(--c-mekanikk); color:#fff; }
+.tab[data-kategori="elmag"].active{ background:var(--c-elmag); border-color:var(--c-elmag); color:#fff; }
+.tab[data-kategori="termo"].active{ background:var(--c-termo); border-color:var(--c-termo); color:#fff; }
+.tab[data-kategori="bolger"].active{ background:var(--c-bolger); border-color:var(--c-bolger); color:#fff; }
+.tab[data-kategori="moderne"].active{ background:var(--c-moderne); border-color:var(--c-moderne); color:#fff; }
 
-.mal-kort{ border:1px solid var(--grid-line); margin-bottom:12px; }
-.mal-hode{ width:100%; text-align:left; background:var(--panel); border:none; cursor:pointer; padding:16px 18px; display:flex; justify-content:space-between; align-items:baseline; gap:16px; font-family:var(--font-sans); color:var(--ink); }
+.mal-kort{ border:1px solid var(--grid-line); border-left:4px solid var(--grid-line); margin-bottom:12px; transition:border-color 0.12s ease; }
+.mal-kort[data-kategori="mekanikk"]{ border-left-color:var(--c-mekanikk); }
+.mal-kort[data-kategori="elmag"]{ border-left-color:var(--c-elmag); }
+.mal-kort[data-kategori="termo"]{ border-left-color:var(--c-termo); }
+.mal-kort[data-kategori="bolger"]{ border-left-color:var(--c-bolger); }
+.mal-kort[data-kategori="moderne"]{ border-left-color:var(--c-moderne); }
+.mal-hode{ width:100%; text-align:left; background:var(--panel); border:none; cursor:pointer; padding:16px 18px; display:flex; justify-content:space-between; align-items:baseline; gap:16px; font-family:var(--font-sans); color:var(--ink); transition:background 0.12s ease; }
+.mal-hode:hover{ background:var(--paper); }
 .mal-hode .navn{ font-weight:600; font-size:15.5px; }
 .mal-hode .formel{ font-family:var(--font-mono); color:var(--ink-soft); font-size:14px; white-space:nowrap; }
 .mal-kort.apen .mal-hode{ border-bottom:1px solid var(--grid-line); }
@@ -166,18 +209,62 @@ footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); 
 <body>
 
 <main class="page">
+  <div class="spektrum"></div>
   <header>
     <h1>Fysikkforklarer</h1>
     <p class="sub">Beskriv en fysikkoppgave med tekst, eller ta bilde av den, så leser KI-en den og forklarer fremgangsmåten steg for steg - med din egen, gratis API-nøkkel. Vil du heller ikke bruke KI: velg en formel manuelt lenger ned, som fungerer helt uten nøkkel.</p>
   </header>
 
-  <div class="boks">
-    <h3>KI-tilkobling (valgfritt - din egen nøkkel)</h3>
+  <div class="einstein-rad">
+    <button type="button" class="einstein-knapp" id="einsteinBtn" aria-label="Få en fysikk-fun-fact">
+      <svg width="76" height="76" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round" fill="none">
+          <path d="M22 40 Q10 28 16 14"/>
+          <path d="M26 30 Q18 16 24 4"/>
+          <path d="M34 24 Q30 10 38 2"/>
+          <path d="M46 20 Q46 6 52 0"/>
+          <path d="M58 21 Q62 8 70 4"/>
+          <path d="M68 26 Q76 14 84 10"/>
+          <path d="M74 34 Q86 26 92 18"/>
+          <path d="M76 44 Q90 40 96 34"/>
+        </g>
+        <circle cx="24" cy="56" r="5" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
+        <circle cx="76" cy="56" r="5" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
+        <circle cx="50" cy="54" r="26" fill="var(--panel)" stroke="var(--ink)" stroke-width="2.5"/>
+        <path d="M36 44 Q42 40 47 43" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M53 43 Q58 40 64 44" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M38 52 Q42 55 46 52" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M54 52 Q58 55 62 52" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M49 54 L47 64 Q50 66 53 64" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M34 68 Q42 64 50 67 Q58 64 66 68 Q58 73 50 70 Q42 73 34 68 Z" fill="var(--ink)"/>
+        <g stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round">
+          <path d="M82 46 L88 46"/>
+          <path d="M85 43 L85 49"/>
+          <path d="M6 46 L12 46"/>
+        </g>
+      </svg>
+    </button>
+    <span class="einstein-tekst">Trykk på Einstein for en tilfeldig fysikk-fun-fact!</span>
+  </div>
+
+  <div class="funfact-overlay" id="funfactOverlay" hidden>
+    <div class="funfact-boks">
+      <div class="funfact-label">Visste du at ...?</div>
+      <div class="funfact-tekst" id="funfactTekst"></div>
+      <div class="knapp-rad">
+        <button type="button" class="btn" id="funfactNyBtn">Ny fun fact</button>
+        <button type="button" class="btn svak" id="funfactLukkBtn">Lukk</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="boks" id="kiBoks">
     <div class="ki-kompakt" id="kiKompakt" hidden>
       <span id="kiKompaktTekst"></span>
       <button type="button" class="btn svak" id="kiEndreBtn">Endre tilkobling</button>
     </div>
     <div id="kiEkspandert">
+      <h3>KI-tilkobling (valgfritt - din egen nøkkel)</h3>
       <p class="under">Ingen konto hos oss, ingen innlogging her på siden. Du bruker din egen gratis nøkkel fra Google Gemini (anbefalt - krever ikke betalingskort) eller Anthropic Claude (krever betalingskort). Nøkkelen lagres kun i denne nettleseren og sendes direkte til leverandøren når du løser en oppgave - aldri innom noen mellomtjener.</p>
       <div class="felt-rad">
         <div class="felt">
@@ -257,7 +344,7 @@ footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); 
   </div>
 </main>
 
-<footer>Fysikkforklarer v0.01 (beta) - utviklet av Mads Fjærem. Prototype/test. KI-nøkkelen din lagres kun lokalt i denne nettleseren.</footer>
+<footer>Fysikkforklarer v0.02 (beta) - utviklet av Mads Fjærem. Prototype/test. KI-nøkkelen din lagres kun lokalt i denne nettleseren.</footer>
 
 <script>
 /* ---------- Fellesfunksjoner ---------- */
@@ -294,6 +381,78 @@ function medTallVisning(uttrykk, variabler, kjente, losForSymbol){
   return venstre + hoyre;
 }
 
+/* ---------- Formatering av fysikknotasjon fra KI-svar ---------- */
+const SUB_TEGN = {
+  "0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉",
+  "a":"ₐ","e":"ₑ","h":"ₕ","i":"ᵢ","j":"ⱼ","k":"ₖ","l":"ₗ","m":"ₘ","n":"ₙ","o":"ₒ",
+  "p":"ₚ","r":"ᵣ","s":"ₛ","t":"ₜ","u":"ᵤ","v":"ᵥ","x":"ₓ",
+  "+":"₊","-":"₋","=":"₌","(":"₍",")":"₎"
+};
+const SUP_TEGN = {
+  "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹",
+  "+":"⁺","-":"⁻","=":"⁼","(":"⁽",")":"⁾","n":"ⁿ","i":"ⁱ"
+};
+function tilSubscript(tekst){
+  return tekst.split("").map(function(ch){ return SUB_TEGN[ch.toLowerCase()] || ch; }).join("");
+}
+function formaterNotasjon(tekst){
+  if (typeof tekst !== "string" || !tekst) return tekst;
+  let ut = tekst;
+  // Gjennomsnitt/snitt -> strek over bokstaven (f.eks. V_snitt -> V̄), i stedet for understrek-tekst
+  ut = ut.replace(/([A-Za-zÆØÅæøå])_?(gjennomsnitt(?:et)?|snitt|middelverdi)\b/gi, function(_, bokstav){
+    return bokstav + "\u0304";
+  });
+  // Generell understreks-indeks -> ordentlig senket skrift (unicode subscript)
+  ut = ut.replace(/([A-Za-zΑ-Ωα-ω0-9])_([A-Za-z0-9+\-=()]+)/g, function(_, basis, indeks){
+    return basis + tilSubscript(indeks);
+  });
+  // Enkel eksponent-notasjon (^2, ^-1, ^n) -> hevet skrift der mulig
+  ut = ut.replace(/\^([A-Za-z0-9+\-=()]+)/g, function(_, eksp){
+    return eksp.split("").map(function(ch){ return SUP_TEGN[ch.toLowerCase()] || ch; }).join("");
+  });
+  return ut;
+}
+
+/* ---------- Einstein: tilfeldig fysikk-fun-fact ---------- */
+const FUN_FACTS = [
+  "Lys bruker litt over 8 minutter på å reise fra Sola til Jorda.",
+  "Et tordenklapp er lyden av lufta rundt lynet som varmes opp så raskt at den eksploderer utover.",
+  "En teskje med stoff fra en nøytronstjerne ville veid rundt en milliard tonn her på Jorda.",
+  "Lyd beveger seg raskere gjennom vann enn gjennom luft, fordi molekylene ligger tettere sammen.",
+  "Newtons tredje lov gjelder også i verdensrommet - det er derfor rakettmotorer virker uten noe å skyve mot.",
+  "Ved absolutt nullpunkt, -273,15 °C, beveger atomer seg nesten ikke i det hele tatt.",
+  "En regnbue er egentlig din helt egen, personlige regnbue - den dannes av lys som brytes i dråper foran akkurat deg.",
+  "Tyngdekraften på Månen er omtrent en sjettedel av tyngdekraften på Jorda.",
+  "Ifølge kvantemekanikken har ikke elektroner en eksakt posisjon før de måles.",
+  "Lyset fra mange stjerner du ser på nattehimmelen kan ha brukt tusenvis av år på å nå øyet ditt.",
+  "Uten friksjon ville skoene dine bare skli på stedet - det er friksjon som gjør at du kan gå.",
+  "En dag på Venus er lengre enn et år på Venus, fordi planeten roterer så utrolig sakte.",
+  "Et lynnedslag kan i det korte øyeblikket det slår ned bli varmere enn overflaten på Sola.",
+  "Bevegelsesenergi øker med kvadratet av farten - derfor er dobbel fart fire ganger så farlig.",
+  "Om du (i teorien, uten luftmotstand) hoppet ut i en tunnel tvers gjennom Jorda, ville turen én vei ta rundt 42 minutter.",
+  "Et fly flyr fordi trykkforskjellen under og over vingen skaper løft - ikke bare vingens form alene."
+];
+let sisteFunFactIndex = -1;
+function tilfeldigFunFact(){
+  if (FUN_FACTS.length <= 1) return FUN_FACTS[0];
+  let i;
+  do { i = Math.floor(Math.random() * FUN_FACTS.length); } while (i === sisteFunFactIndex);
+  sisteFunFactIndex = i;
+  return FUN_FACTS[i];
+}
+const einsteinBtn = document.getElementById("einsteinBtn");
+const funfactOverlay = document.getElementById("funfactOverlay");
+const funfactTekst = document.getElementById("funfactTekst");
+const funfactNyBtn = document.getElementById("funfactNyBtn");
+const funfactLukkBtn = document.getElementById("funfactLukkBtn");
+function visFunFact(){
+  funfactTekst.textContent = tilfeldigFunFact();
+  funfactOverlay.hidden = false;
+}
+einsteinBtn.addEventListener("click", visFunFact);
+funfactNyBtn.addEventListener("click", visFunFact);
+funfactLukkBtn.addEventListener("click", function(){ funfactOverlay.hidden = true; });
+
 /* ---------- KI-nøkkel (lagres i localStorage) ---------- */
 const LS_LEVERANDOR = "fysikkforklarer_leverandor";
 const LS_NOKKEL = "fysikkforklarer_nokkel";
@@ -309,6 +468,7 @@ const kiKompakt = document.getElementById("kiKompakt");
 const kiKompaktTekst = document.getElementById("kiKompaktTekst");
 const kiEkspandert = document.getElementById("kiEkspandert");
 const kiEndreBtn = document.getElementById("kiEndreBtn");
+const kiBoks = document.getElementById("kiBoks");
 
 function lesLagretNokkel(){
   try{
@@ -362,14 +522,17 @@ function oppdaterKiVisning(){
     kiKompaktTekst.textContent = "KI-tilkobling: " + navn + " (" + maske + ")";
     kiKompakt.hidden = false;
     kiEkspandert.hidden = true;
+    kiBoks.classList.add("boks-minimert");
   } else {
     kiKompakt.hidden = true;
     kiEkspandert.hidden = false;
+    kiBoks.classList.remove("boks-minimert");
   }
 }
 kiEndreBtn.addEventListener("click", function(){
   kiKompakt.hidden = true;
   kiEkspandert.hidden = false;
+  kiBoks.classList.remove("boks-minimert");
 });
 kiSkjulBtn.addEventListener("click", oppdaterKiVisning);
 kiLeverandorSelect.addEventListener("change", oppdaterHjelpLenke);
@@ -674,7 +837,7 @@ function tegnKiResultat(data){
   }
 
   function overskrift(tekst){ const h = document.createElement("h4"); h.textContent = tekst; kiResultatEl.appendChild(h); }
-  function avsnitt(tekst){ const p = document.createElement("p"); p.textContent = tekst; kiResultatEl.appendChild(p); }
+  function avsnitt(tekst){ const p = document.createElement("p"); p.textContent = formaterNotasjon(tekst); kiResultatEl.appendChild(p); }
 
   if (data.tolkning){ overskrift("Tolkning av oppgaven"); avsnitt(data.tolkning); }
 
@@ -688,7 +851,7 @@ function tegnKiResultat(data){
     data.kjente_storrelser.forEach(function(rad){
       const tr = document.createElement("tr");
       [rad.storrelse, rad.symbol, rad.verdi].forEach(function(v){
-        const td = document.createElement("td"); td.textContent = (typeof v === "string") ? v : ""; tr.appendChild(td);
+        const td = document.createElement("td"); td.textContent = formaterNotasjon((typeof v === "string") ? v : ""); tr.appendChild(td);
       });
       table.appendChild(tr);
     });
@@ -701,7 +864,7 @@ function tegnKiResultat(data){
     overskrift("Relevante lover og formler");
     const ul = document.createElement("ul");
     ul.className = "formel-liste";
-    data.lover_og_formler.forEach(function(f){ const li = document.createElement("li"); li.textContent = f; ul.appendChild(li); });
+    data.lover_og_formler.forEach(function(f){ const li = document.createElement("li"); li.textContent = formaterNotasjon(f); ul.appendChild(li); });
     kiResultatEl.appendChild(ul);
   }
 
@@ -712,10 +875,10 @@ function tegnKiResultat(data){
       div.className = "steg";
       const tittel = document.createElement("div");
       tittel.className = "steg-tittel";
-      tittel.textContent = (i+1) + ". " + ((typeof s.tittel === "string") ? s.tittel : "");
+      tittel.textContent = (i+1) + ". " + formaterNotasjon((typeof s.tittel === "string") ? s.tittel : "");
       div.appendChild(tittel);
-      if (s.tekst){ const tekst = document.createElement("div"); tekst.textContent = s.tekst; div.appendChild(tekst); }
-      if (s.uttrykk){ const uttrykk = document.createElement("div"); uttrykk.className = "uttrykk"; uttrykk.textContent = s.uttrykk; div.appendChild(uttrykk); }
+      if (s.tekst){ const tekst = document.createElement("div"); tekst.textContent = formaterNotasjon(s.tekst); div.appendChild(tekst); }
+      if (s.uttrykk){ const uttrykk = document.createElement("div"); uttrykk.className = "uttrykk"; uttrykk.textContent = formaterNotasjon(s.uttrykk); div.appendChild(uttrykk); }
       kiResultatEl.appendChild(div);
     });
   }
@@ -724,7 +887,7 @@ function tegnKiResultat(data){
     const boks = document.createElement("div");
     boks.className = "svar-boks";
     const label = document.createElement("div"); label.className = "label"; label.textContent = "Svar";
-    const verdi = document.createElement("div"); verdi.className = "verdi"; verdi.textContent = data.svar;
+    const verdi = document.createElement("div"); verdi.className = "verdi"; verdi.textContent = formaterNotasjon(data.svar);
     boks.appendChild(label); boks.appendChild(verdi);
     kiResultatEl.appendChild(boks);
   }
@@ -735,13 +898,13 @@ function tegnKiResultat(data){
     if (data.enhetskontroll){
       const p1 = document.createElement("p");
       const s1 = document.createElement("strong"); s1.textContent = "Enhetskontroll: ";
-      p1.appendChild(s1); p1.appendChild(document.createTextNode(data.enhetskontroll));
+      p1.appendChild(s1); p1.appendChild(document.createTextNode(formaterNotasjon(data.enhetskontroll)));
       sjekk.appendChild(p1);
     }
     if (data.rimelighetssjekk){
       const p2 = document.createElement("p");
       const s2 = document.createElement("strong"); s2.textContent = "Rimelighet: ";
-      p2.appendChild(s2); p2.appendChild(document.createTextNode(data.rimelighetssjekk));
+      p2.appendChild(s2); p2.appendChild(document.createTextNode(formaterNotasjon(data.rimelighetssjekk)));
       sjekk.appendChild(p2);
     }
     kiResultatEl.appendChild(sjekk);
@@ -1024,6 +1187,7 @@ function tegnTabs(){
     const b = document.createElement("button");
     b.type = "button";
     b.className = "tab" + (valgtKategori === kat.id ? " active" : "");
+    b.dataset.kategori = kat.id;
     b.textContent = kat.navn;
     b.addEventListener("click", function(){ valgtKategori = kat.id; tegnTabs(); tegnListe(); });
     tabsEl.appendChild(b);
@@ -1153,6 +1317,7 @@ function tegnListe(){
     const kort = document.createElement("div");
     kort.className = "mal-kort";
     kort.dataset.id = mal.id;
+    kort.dataset.kategori = mal.kategori;
 
     const hode = document.createElement("button");
     hode.type = "button";
