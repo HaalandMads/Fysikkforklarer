@@ -320,7 +320,7 @@ footer{ padding:24px; text-align:center; font-size:13px; color:var(--ink-soft); 
   </div>
 </main>
 
-<footer>Fysikkforklarer v0.08 (beta) - utviklet av Mads Fjærem. Prototype/test. KI-nøkkelen din lagres kun lokalt i denne nettleseren.</footer>
+<footer>Fysikkforklarer v0.09 (beta) - utviklet av Mads Fjærem. Prototype/test. KI-nøkkelen din lagres kun lokalt i denne nettleseren.</footer>
 
 <script>
 /* ---------- Fellesfunksjoner ---------- */
@@ -925,6 +925,7 @@ function byggLosPrompt(tekst, harBilde){
     "- Bruk SI-enheter der ikke annet er oppgitt eller naturlig, og vis enhet sammen med alle tallverdier.",
     "- \"uttrykk\" i hvert steg skal vise selve formelen eller regnestykket. Bruk tom streng hvis steget er rent forklarende.",
     "- Del opp løsningen i MANGE små steg i stedet for få store steg. Hvert steg skal gjøre bare én ting (f.eks. ett steg for å identifisere hvilken formel som passer, ett steg for å isolere den ukjente, ett steg for å sette inn tall, ett steg for å regne ut - ikke slå sammen disse).",
+    "- I steget der du isolerer/snur formelen: vis selve omformingen i \"uttrykk\", altså fra den opprinnelige formelen til den snudde formelen (f.eks. \"v = v₀ + a·t  →  a = (v - v₀) / t\"), ikke bare sluttresultatet av snuingen. Hvis den ukjente allerede står alene på venstre side i utgangsformelen, trengs ikke noe eget snu-steg.",
     "- I \"tekst\" for hvert steg: forklar både HVA du gjør og HVORFOR, med enkle ord og korte setninger - skriv som om du forklarer det til noen som aldri har hatt fysikk før. Unngå fagord uten en kort forklaring første gang de brukes (skriv f.eks. «akselerasjon (hvor mye farten endrer seg per sekund)» ved første bruk).",
     "- Ikke hopp over regnetrinn - vis alle mellomregninger, ett tall om gangen, i \"uttrykk\".",
     "- \"svar\" skal være selve sluttsvaret, kort og tydelig, med riktig enhet.",
@@ -1219,6 +1220,7 @@ const MALER = [
       {symbol:"v", label:"v", navn:"Sluttfart", enhet:"m/s"}
     ],
     losForValg:["v","v0","a","t"],
+    naturligLosFor:"v",
     beregn:function(losFor, k){
       if (losFor === "v") return { verdi:k.v0 + k.a*k.t, uttrykk:"v = v₀ + a·t" };
       if (losFor === "v0") return { verdi:k.v - k.a*k.t, uttrykk:"v₀ = v - a·t" };
@@ -1237,6 +1239,7 @@ const MALER = [
       {symbol:"s", label:"s", navn:"Strekning", enhet:"m"}
     ],
     losForValg:["s","t","v0","a"],
+    naturligLosFor:"s",
     beregn:function(losFor, k){
       if (losFor === "s") return { verdi:k.v0*k.t + 0.5*k.a*k.t*k.t, uttrykk:"s = v₀·t + ½·a·t²" };
       if (losFor === "t"){
@@ -1262,6 +1265,7 @@ const MALER = [
       {symbol:"a", label:"a", navn:"Akselerasjon", enhet:"m/s²"}
     ],
     losForValg:["F","m","a"],
+    naturligLosFor:"F",
     beregn:function(losFor, k){
       if (losFor === "F") return { verdi:k.m*k.a, uttrykk:"F = m·a" };
       if (losFor === "m"){ if (k.a===0) throw "Akselerasjonen kan ikke være 0."; return { verdi:k.F/k.a, uttrykk:"m = F / a" }; }
@@ -1278,6 +1282,7 @@ const MALER = [
       {symbol:"v", label:"v", navn:"Fart", enhet:"m/s"}
     ],
     losForValg:["Ek","m","v"],
+    naturligLosFor:"Ek",
     beregn:function(losFor, k){
       if (losFor === "Ek") return { verdi:0.5*k.m*k.v*k.v, uttrykk:"Ek = ½·m·v²" };
       if (losFor === "m"){ if (k.v===0) throw "Farten kan ikke være 0."; return { verdi:2*k.Ek/(k.v*k.v), uttrykk:"m = 2·Ek / v²" }; }
@@ -1294,6 +1299,7 @@ const MALER = [
       {symbol:"R", label:"R", navn:"Resistans", enhet:"Ω"}
     ],
     losForValg:["V","I","R"],
+    naturligLosFor:"V",
     beregn:function(losFor, k){
       if (losFor === "V") return { verdi:k.I*k.R, uttrykk:"V = I·R" };
       if (losFor === "I"){ if (k.R===0) throw "Resistansen kan ikke være 0."; return { verdi:k.V/k.R, uttrykk:"I = V / R" }; }
@@ -1310,6 +1316,7 @@ const MALER = [
       {symbol:"I", label:"I", navn:"Strøm", enhet:"A"}
     ],
     losForValg:["P","V","I"],
+    naturligLosFor:"P",
     beregn:function(losFor, k){
       if (losFor === "P") return { verdi:k.V*k.I, uttrykk:"P = V·I" };
       if (losFor === "V"){ if (k.I===0) throw "Strømmen kan ikke være 0."; return { verdi:k.P/k.I, uttrykk:"V = P / I" }; }
@@ -1327,6 +1334,7 @@ const MALER = [
       {symbol:"dT", label:"ΔT", navn:"Temperaturendring", enhet:"K"}
     ],
     losForValg:["Q","m","c","dT"],
+    naturligLosFor:"Q",
     beregn:function(losFor, k){
       if (losFor === "Q") return { verdi:k.m*k.c*k.dT, uttrykk:"Q = m·c·ΔT" };
       if (losFor === "m"){ if (k.c*k.dT===0) throw "c og ΔT kan ikke være 0."; return { verdi:k.Q/(k.c*k.dT), uttrykk:"m = Q / (c·ΔT)" }; }
@@ -1344,6 +1352,7 @@ const MALER = [
       {symbol:"L", label:"L", navn:"Spesifikk latent varme", enhet:"J/kg"}
     ],
     losForValg:["Q","m","L"],
+    naturligLosFor:"Q",
     beregn:function(losFor, k){
       if (losFor === "Q") return { verdi:k.m*k.L, uttrykk:"Q = m·L" };
       if (losFor === "m"){ if (k.L===0) throw "L kan ikke være 0."; return { verdi:k.Q/k.L, uttrykk:"m = Q / L" }; }
@@ -1360,6 +1369,7 @@ const MALER = [
       {symbol:"lambda", label:"λ", navn:"Bølgelengde", enhet:"m"}
     ],
     losForValg:["v","f","lambda"],
+    naturligLosFor:"v",
     beregn:function(losFor, k){
       if (losFor === "v") return { verdi:k.f*k.lambda, uttrykk:"v = f·λ" };
       if (losFor === "f"){ if (k.lambda===0) throw "Bølgelengden kan ikke være 0."; return { verdi:k.v/k.lambda, uttrykk:"f = v / λ" }; }
@@ -1377,6 +1387,7 @@ const MALER = [
       {symbol:"theta2", label:"θ₂", navn:"Brytningsvinkel", enhet:"°"}
     ],
     losForValg:["theta2","theta1","n1","n2"],
+    naturligLosFor:null,
     beregn:function(losFor, k){
       if (losFor === "theta2"){
         const s = k.n1*Math.sin(rad(k.theta1))/k.n2;
@@ -1409,6 +1420,7 @@ const MALER = [
       {symbol:"lambda", label:"λ", navn:"Bølgelengde", enhet:"m"}
     ],
     losForValg:["E","lambda"],
+    naturligLosFor:"E",
     beregn:function(losFor, k){
       const h = 6.626e-34, c = 2.998e8;
       if (losFor === "E") return { verdi:(h*c)/k.lambda, uttrykk:"E = h·c / λ" };
@@ -1424,6 +1436,7 @@ const MALER = [
       {symbol:"m", label:"m", navn:"Masse", enhet:"kg"}
     ],
     losForValg:["E","m"],
+    naturligLosFor:"E",
     beregn:function(losFor, k){
       const c = 2.998e8;
       if (losFor === "E") return { verdi:k.m*c*c, uttrykk:"E = m·c²" };
@@ -1553,19 +1566,24 @@ function tegnPanel(mal, panelEl){
 
     const losForVar = finnVariabel(mal, st.losFor);
     const medTall = medTallVisning(ut.uttrykk, mal.variabler, kjente, st.losFor);
+    const trengerSnu = mal.naturligLosFor !== st.losFor;
     resultatEl.style.display = "block";
 
-    const linje1 = document.createElement("div");
-    linje1.className = "steg-linje";
-    const merke1 = document.createElement("span"); merke1.className = "merke"; merke1.textContent = "Utledet formel";
-    linje1.appendChild(merke1); linje1.appendChild(document.createTextNode(ut.uttrykk));
-    resultatEl.appendChild(linje1);
+    function leggTilLinje(merketekst, innhold){
+      const linje = document.createElement("div");
+      linje.className = "steg-linje";
+      const merke = document.createElement("span"); merke.className = "merke"; merke.textContent = merketekst;
+      linje.appendChild(merke); linje.appendChild(document.createTextNode(innhold));
+      resultatEl.appendChild(linje);
+    }
 
-    const linje2 = document.createElement("div");
-    linje2.className = "steg-linje";
-    const merke2 = document.createElement("span"); merke2.className = "merke"; merke2.textContent = "Med innsatte tall";
-    linje2.appendChild(merke2); linje2.appendChild(document.createTextNode(medTall));
-    resultatEl.appendChild(linje2);
+    if (trengerSnu){
+      leggTilLinje("Opprinnelig formel", mal.formelVisning);
+      leggTilLinje("Snudd for å løse for " + losForVar.label, ut.uttrykk);
+    } else {
+      leggTilLinje("Formel", ut.uttrykk);
+    }
+    leggTilLinje("Med innsatte tall", medTall);
 
     const boks = document.createElement("div");
     boks.className = "svar-boks";
